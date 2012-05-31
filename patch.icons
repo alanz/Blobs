@@ -1,0 +1,11 @@
+--- Blobs.app/Contents/Info.plist	Tue Jul 26 15:24:41 2005
++++ Blobs.app/Contents/Info.plist	Tue Jul 26 15:16:53 2005
+@@ -11,7 +11,7 @@
+         <key>CFBundleExecutable</key>
+         <string>Blobs</string>
+         <key>CFBundleIconFile</key>
+-        <string>wxmac.icns</string>
++        <string>Blobs.icns</string>
+         <key>CFBundleName</key>
+         <string>Blobs</string>
+         <key>CFBundlePackageType</key>

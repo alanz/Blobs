@@ -1,0 +1,234 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<html>
+<head>
+<title>
+  Blobs diagram editor
+</title>
+</head>
+ 
+<body bgcolor='#ffffff'>
+
+<center>
+<h1>Blobs</h1>
+<h2>a diagram editor in Haskell</h2>
+<center>
+  <table><tr><td valign="center">
+    <img src="blobs.png" alt="Blobs editor with FPTC">
+  </td><td valign="center">
+    <img src="dazzle.jpg" alt="Dazzle">
+  </td></tr></table>
+</center>
+<hr>
+
+<table><tr><td width=200 align=center>
+<a href="#what">What is Blobs?</a><br>
+<a href="#use">How do I use it?</a><br>
+</td><td width=200 align=center>
+<a href="#download">Downloads</a><br>
+<a href="#contribute">How can I contribute?</a><br>
+</td></tr></table>
+</center>
+<hr>
+
+
+<center><h3><a name="what">What is Blobs?</a></h3></center>
+<p>
+<b>Blobs</b> is a diagram editor for directed graphs.  It is written in
+Haskell, using the platform-independent GUI toolkit wxHaskell.  It is a
+community project at a fairly early stage of development - you are
+encouraged to get involved and improve it!
+
+<p>
+Blobs is a front-end for drawing and editing graph diagrams.
+You must add your own back-end engine if you want it to
+do some analysis or processing of the graph.  There are
+various analysis engines that use Blobs as a front-end, e.g.
+<ul>
+<li> <a href="http://www.cs.uu.nl/dazzle/">Dazzle</a> for bayesian analysis
+     of networks;
+<li> FPTC for safety analysis of systems designs;
+<li> <a href="http://haskell.di.uminho.pt/jmvilaca/INblobs/">INBlobs</a> for
+     editing and interpreting Interaction Nets;
+</ul>
+but these are not currently available as open source.  We do supply a
+couple of very simple engines, just to demonstrate how to connect the
+engine up to Blobs.
+
+<p>
+What can Blobs do?
+<ul>
+  <li> Draw nodes with textual labels, and optional extra (polymorphic)
+       information labels.
+  <li> Connect nodes together with edges.  An edge has optional extra
+       information labels.
+  <li> You can create palettes of different node shapes, and load a
+       palette into the editor.  (Currently, palette creation is by
+       hand, not graphical.)
+  <li> Graphs are stored in an XML file format.
+  <li> If you have a backend engine, you can send the graph to it for
+       analysis, receiving a graph back for viewing as a result.
+</ul>
+
+
+<hr>
+<center><h3><a name="download">Downloads</a></h3></center>
+
+<p>
+Because Blobs does not do anything much useful on its own, there is no
+released version of Blobs.  Individual projects which share Blobs as a
+component have their own separate releases.
+
+<p>
+To use Blobs in your own project, you must collect a copy of the
+<a href="http://darcs.net/"><b>darcs</b></a> repository.
+<pre>
+    darcs get http://www.cs.york.ac.uk/fp/darcs/Blobs
+</pre>
+The source tree and version history can be browsed on-line through
+<a href="http://www.cs.york.ac.uk/fp/darcs/">darcsweb</a>.
+
+<p><b>Copyright:</b> &copy; 2005 the authors and contributors.
+
+<p>
+Blobs was originally written by Arjan van IJzendoorn and Martijn
+Schrage of the Universiteit Utrecht.  Other contributors include
+Malcolm Wallace.  Full details are in the <a
+href="COPYRIGHT">COPYRIGHT</a> file.
+
+<p><b>License:</b> This software is distributed under
+the terms of the LGPL (see file <a href="LICENCE-LGPL">LICENCE-LGPL</a>
+for more details), but there is a special exception clause detailed in
+file <a href="COPYRIGHT">COPYRIGHT</a>.
+
+<p>
+This software comes with no warranty.  Use at your own risk.
+
+<hr>
+<center><h3><a name="use">How do I use it?</a></h3></center>
+<p>
+
+<p>
+<b>Building instructions</b>
+<p>
+To build Blobs, you need:
+<ul>
+<li> <a href="http://haskell.org/ghc/">ghc</a>-6.2.2
+     (Note 6.4 may work, untested)
+<li> <a href="http://www.wxwidgets.org/">wxWidgets</a>
+<li> <a href="http://wxhaskell.sourceforge.net/">wxHaskell</a>-0.9.0
+     (or later?)
+<li> <a href="http://www.cs.york.ac.uk/fp/HaXml-1.14/">HaXml</a>-1.15
+     (Note, this <em>unstable</em> version or later is required.)
+</ul>
+
+<p>
+On Windows you may also need to install
+<a href="http://www.mingw.org/">mingw</a> in order to have the GNU make
+utility etc.
+
+<p>
+In the toplevel Blobs directory, there is a Makefile.  You may need to
+edit it slightly, e.g. for a different version of ghc, or to
+enable/disable building a MacOS application bundle (symbol MAC=yes).
+
+<p>
+Just type 'make' and Blobs should build.  If you change or add any
+imports in the code itself, you may need to 'make depend' to update the
+Makefile.
+
+<p>
+<b>Usage instructions</b>
+<p>
+<ul>
+<li> Right click on the canvas, nodes, and edges for context menus.
+<li> To create a node, shift click on some blank canvas.
+<li> To create an edge, select (click) the source node then shift-click
+     the target node.
+<li> To delete a node or edge, select it and press backspace.
+<li> To rearrange the diagram, click and drag nodes to where you want them.
+<li> To make an edge look tidier, add a control-point from its context menu,
+     and drag the point to where you want it.
+<li> You can add multiple items into the current selection by meta-clicking
+     the extra nodes and control points.  (Meta = Apple key, or Alt key.)
+     A multiple selection can be dragged just like a single selection.
+</ul>
+
+
+<hr>
+<center><h3><a name="contrib">How can I contribute to Blobs?</a></h3></center>
+<p>
+
+<p>
+Step one: join the
+<a href="http://haskell.org/mailman/listinfo/blobs">Blobs mailing list</a>.
+
+<p>
+Step two: <tt>darcs send</tt> your patches to the list.
+
+<p>
+Discussion about features is encouraged before you implement them.
+Patches to create or improve documentation (including this webpage) are
+just as welcome as actual code.
+
+<p>
+<b>To Do list</b>
+<p>
+<ul>
+<li> <b>More than one analysis method.</b>  Currently, there is a <tt>class
+     Analysis</tt> with the methods <tt>analysis</tt> and
+     <tt>revert</tt>.  But this means there can only ever be one
+     implementation of analysis for a given graph type.  The class
+     should be replaced with a concrete datatype containing a lookup
+     table of analysis methods.  Then the Edit menu can show as many or
+     as few analyses as are available.
+     <br><font color="green">Done, MW, 2005-11-16.  The GraphOps datatype
+     (in module Operations) replaces the Analysis class. There is a new
+     "Operations" menu.</font>
+<li> <b>Multiple selection.</b> The ability to group multiple nodes
+     together, by selecting a rectangular area of the diagram.  They can
+     then be dragged or deleted together.  (Should also select any edge
+     control-points within the area.)
+     <br><font color="green">Partially done, MW, 2005-11-16.  Implemented
+     multiple selection with meta-click.  But dragging a rectangular
+     area (to select everything within it) remains to be done.</font>
+     <br><font color="green">Nearly complete, MW, 2005-11-17.
+     Dragging a rectangular area now selects everything within it.
+     The rectangular area itself is not yet highlighted, just the
+     contained items.</font>
+     <br><font color="green">Complete, MW, 2005-11-18.
+     Multiple selection by dragging out a rectangle now displays the
+     rectangle as well as the selected items.</font>
+<li> <b>Positioning guides.</b> Apple Keynote has the best diagram
+     layout editor I have ever come across.  When one object lines up
+     horizontally or vertically with any other object on the diagram a
+     yellow line appears connecting up their centres.  (It disappears
+     again once you drop the object).  This simple idea makes it
+     incredibly easy to get things looking just right, without any need
+     for absolute coords or grids etc.  I think the objects also "snap"
+     to the line when the mouse is within one or two pixels of the
+     alignment.
+<li> <b>Visible palette.</b> At the moment, if you load a palette from file,
+     you get the palette on the right-click context menu of nodes.  But this
+     is a bit nasty, because (a) you have to create the node first, then
+     change its shape; (b) you can't see pictures of the palette.  So
+     there should be a separate window with a table of all the node
+     shapes in the palette.  Selecting a shape from the palette will make
+     that the default shape for all subsequent node-creation until another
+     shape is selected from the palette.
+<li> <b>Palette editor.</b> How do you create a palette?  At the moment,
+     by hand in a text editor.  Much better to have a graphical way of
+     creating shapes, cutting-n-pasting shapes into palette sets, etc.
+<li> <b>Edge palette.</b> Do we need a palette of different edge shapes
+     as well as node shapes?
+<li> <b>Ports.</b> A node may need some specific connection ports, where
+     edges may attach to.  For instance, this might be because the
+     information stored at a node is an expression to be applied to
+     inputs from edges, generating output on other edges.  The expression
+     would need to distinguish different input sources and output channels.
+
+</ul>
+
+<hr>
+ 
+</body>
+</html>

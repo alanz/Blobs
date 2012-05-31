@@ -1,0 +1,462 @@
+<Network
+  ><Width
+    >15.0</Width
+  ><Height
+    >9.0</Height
+  ><Info><unit/></Info
+  ><Palette
+    ><Palette
+      ><string
+	><![CDATA["circle"]]></string
+      ><Circle
+	><ShapeStyle
+	  ><int value="1"
+	  /><RGB
+	    ><int value="0"
+	    /><int value="0"
+	    /><int value="0"/></RGB
+	  ><RGB
+	    ><int value="128"
+	    /><int value="200"
+	    /><int value="128"/></RGB></ShapeStyle
+	><double value="0.5"/></Circle
+      ><maybe-list-int
+	><list-int/></maybe-list-int
+      ><string
+	><![CDATA["square"]]></string
+      ><Polygon
+	><ShapeStyle
+	  ><int value="2"
+	  /><RGB
+	    ><int value="0"
+	    /><int value="0"
+	    /><int value="0"/></RGB
+	  ><RGB
+	    ><int value="200"
+	    /><int value="128"
+	    /><int value="200"/></RGB></ShapeStyle
+	><list-DoublePoint
+	  ><X
+	    >-0.5</X
+	  ><Y
+	    >-0.5</Y
+	  ><X
+	    >0.5</X
+	  ><Y
+	    >-0.5</Y
+	  ><X
+	    >0.5</X
+	  ><Y
+	    >0.5</Y
+	  ><X
+	    >-0.5</X
+	  ><Y
+	    >0.5</Y></list-DoublePoint></Polygon
+      ><maybe-list-int
+	><list-int/></maybe-list-int
+      ><string
+	><![CDATA["triangle left"]]></string
+      ><Polygon
+	><ShapeStyle
+	  ><int value="1"
+	  /><RGB
+	    ><int value="0"
+	    /><int value="0"
+	    /><int value="0"/></RGB
+	  ><RGB
+	    ><int value="128"
+	    /><int value="200"
+	    /><int value="200"/></RGB></ShapeStyle
+	><list-DoublePoint
+	  ><X
+	    >-0.5</X
+	  ><Y
+	    >0.0</Y
+	  ><X
+	    >0.5</X
+	  ><Y
+	    >-0.5</Y
+	  ><X
+	    >0.5</X
+	  ><Y
+	    >0.5</Y></list-DoublePoint></Polygon
+      ><maybe-list-int
+	><list-int/></maybe-list-int
+      ><string
+	><![CDATA["triangle right"]]></string
+      ><Polygon
+	><ShapeStyle
+	  ><int value="1"
+	  /><RGB
+	    ><int value="0"
+	    /><int value="0"
+	    /><int value="0"/></RGB
+	  ><RGB
+	    ><int value="128"
+	    /><int value="200"
+	    /><int value="200"/></RGB></ShapeStyle
+	><list-DoublePoint
+	  ><X
+	    >-0.5</X
+	  ><Y
+	    >-0.5</Y
+	  ><X
+	    >-0.5</X
+	  ><Y
+	    >0.5</Y
+	  ><X
+	    >0.5</X
+	  ><Y
+	    >0.0</Y></list-DoublePoint></Polygon
+      ><maybe-list-int
+	><list-int/></maybe-list-int
+      ><string
+	><![CDATA["wire"]]></string
+      ><Composite
+	><list-Shape
+	  ><Lines
+	    ><ShapeStyle
+	      ><int value="2"
+	      /><RGB
+		><int value="0"
+		/><int value="0"
+		/><int value="0"/></RGB
+	      ><RGB
+		><int value="128"
+		/><int value="128"
+		/><int value="128"/></RGB></ShapeStyle
+	    ><list-DoublePoint
+	      ><X
+		>0.0</X
+	      ><Y
+		>-0.5</Y
+	      ><X
+		>-0.2</X
+	      ><Y
+		>0.5</Y></list-DoublePoint></Lines
+	  ><Lines
+	    ><ShapeStyle
+	      ><int value="2"
+	      /><RGB
+		><int value="0"
+		/><int value="0"
+		/><int value="0"/></RGB
+	      ><RGB
+		><int value="128"
+		/><int value="128"
+		/><int value="128"/></RGB></ShapeStyle
+	    ><list-DoublePoint
+	      ><X
+		>0.2</X
+	      ><Y
+		>-0.5</Y
+	      ><X
+		>0.0</X
+	      ><Y
+		>0.5</Y></list-DoublePoint></Lines></list-Shape></Composite
+      ><maybe-list-int
+	><list-int/></maybe-list-int></Palette></Palette
+  ><Nodes
+    ><Node id="N1"
+      ><X
+	>1.4111111111111114</X
+      ><Y
+	>5.150555555555556</Y
+      ><Name
+	>sensor</Name
+      ><LabelAbove
+	>True</LabelAbove
+      ><Shape
+	><Right-Shape
+	><Polygon
+	  ><ShapeStyle
+	    ><int value="2"
+	    /><RGB
+	      ><int value="0"
+	      /><int value="0"
+	      /><int value="0"/></RGB
+	    ><RGB
+	      ><int value="200"
+	      /><int value="128"
+	      /><int value="200"/></RGB></ShapeStyle
+	  ><list-DoublePoint
+	    ><X
+	      >-0.5</X
+	    ><Y
+	      >-0.5</Y
+	    ><X
+	      >0.5</X
+	    ><Y
+	      >-0.5</Y
+	    ><X
+	      >0.5</X
+	    ><Y
+	      >0.5</Y
+	    ><X
+	      >-0.5</X
+	    ><Y
+	      >0.5</Y></list-DoublePoint></Polygon></Right-Shape></Shape
+      ><Info><list-Int/></Info></Node
+    ><Node id="N2"
+      ><X
+	>4.762500000000001</X
+      ><Y
+	>5.115277777777779</Y
+      ><Name
+	>splitter</Name
+      ><LabelAbove
+	>True</LabelAbove
+      ><Shape
+	><Right-Shape
+	><Polygon
+	  ><ShapeStyle
+	    ><int value="1"
+	    /><RGB
+	      ><int value="0"
+	      /><int value="0"
+	      /><int value="0"/></RGB
+	    ><RGB
+	      ><int value="128"
+	      /><int value="200"
+	      /><int value="200"/></RGB></ShapeStyle
+	  ><list-DoublePoint
+	    ><X
+	      >-0.5</X
+	    ><Y
+	      >0.0</Y
+	    ><X
+	      >0.5</X
+	    ><Y
+	      >-0.5</Y
+	    ><X
+	      >0.5</X
+	    ><Y
+	      >0.5</Y></list-DoublePoint></Polygon></Right-Shape></Shape
+      ><Info><list-Int/></Info></Node
+    ><Node id="N3"
+      ><X
+	>14.14638888888889</X
+      ><Y
+	>5.080000000000001</Y
+      ><Name
+	>consolidator</Name
+      ><LabelAbove
+	>True</LabelAbove
+      ><Shape
+	><Right-Shape
+	><Polygon
+	  ><ShapeStyle
+	    ><int value="1"
+	    /><RGB
+	      ><int value="0"
+	      /><int value="0"
+	      /><int value="0"/></RGB
+	    ><RGB
+	      ><int value="128"
+	      /><int value="200"
+	      /><int value="200"/></RGB></ShapeStyle
+	  ><list-DoublePoint
+	    ><X
+	      >-0.5</X
+	    ><Y
+	      >-0.5</Y
+	    ><X
+	      >-0.5</X
+	    ><Y
+	      >0.5</Y
+	    ><X
+	      >0.5</X
+	    ><Y
+	      >0.0</Y></list-DoublePoint></Polygon></Right-Shape></Shape
+      ><Info><list-Int/></Info></Node
+    ><Node id="N4"
+      ><X
+	>17.638888888888886</X
+      ><Y
+	>5.08</Y
+      ><Name
+	>CPU</Name
+      ><LabelAbove
+	>True</LabelAbove
+      ><Shape
+	><Right-Shape
+	><Circle
+	  ><ShapeStyle
+	    ><int value="1"
+	    /><RGB
+	      ><int value="0"
+	      /><int value="0"
+	      /><int value="0"/></RGB
+	    ><RGB
+	      ><int value="128"
+	      /><int value="200"
+	      /><int value="128"/></RGB></ShapeStyle
+	  ><double value="0.5"/></Circle></Right-Shape></Shape
+      ><Info><list-Int/></Info></Node
+    ><Node id="N5"
+      ><X
+	>9.630833333333335</X
+      ><Y
+	>3.5277777777777777</Y
+      ><Name
+	><![CDATA[wiring L]]></Name
+      ><LabelAbove
+	>True</LabelAbove
+      ><Shape
+	><Right-Shape
+	><Composite
+	  ><list-Shape
+	    ><Lines
+	      ><ShapeStyle
+		><int value="2"
+		/><RGB
+		  ><int value="0"
+		  /><int value="0"
+		  /><int value="0"/></RGB
+		><RGB
+		  ><int value="128"
+		  /><int value="128"
+		  /><int value="128"/></RGB></ShapeStyle
+	      ><list-DoublePoint
+		><X
+		  >0.0</X
+		><Y
+		  >-0.5</Y
+		><X
+		  >-0.2</X
+		><Y
+		  >0.5</Y></list-DoublePoint></Lines
+	    ><Lines
+	      ><ShapeStyle
+		><int value="2"
+		/><RGB
+		  ><int value="0"
+		  /><int value="0"
+		  /><int value="0"/></RGB
+		><RGB
+		  ><int value="128"
+		  /><int value="128"
+		  /><int value="128"/></RGB></ShapeStyle
+	      ><list-DoublePoint
+		><X
+		  >0.2</X
+		><Y
+		  >-0.5</Y
+		><X
+		  >0.0</X
+		><Y
+		  >0.5</Y></list-DoublePoint></Lines></list-Shape></Composite></Right-Shape></Shape
+      ><Info><list-Int/></Info></Node
+    ><Node id="N6"
+      ><X
+	>9.595555555555555</X
+      ><Y
+	>6.526388888888889</Y
+      ><Name
+	><![CDATA[wiring R]]></Name
+      ><LabelAbove
+	>True</LabelAbove
+      ><Shape
+	><Right-Shape
+	><Composite
+	  ><list-Shape
+	    ><Lines
+	      ><ShapeStyle
+		><int value="2"
+		/><RGB
+		  ><int value="0"
+		  /><int value="0"
+		  /><int value="0"/></RGB
+		><RGB
+		  ><int value="128"
+		  /><int value="128"
+		  /><int value="128"/></RGB></ShapeStyle
+	      ><list-DoublePoint
+		><X
+		  >0.0</X
+		><Y
+		  >-0.5</Y
+		><X
+		  >-0.2</X
+		><Y
+		  >0.5</Y></list-DoublePoint></Lines
+	    ><Lines
+	      ><ShapeStyle
+		><int value="2"
+		/><RGB
+		  ><int value="0"
+		  /><int value="0"
+		  /><int value="0"/></RGB
+		><RGB
+		  ><int value="128"
+		  /><int value="128"
+		  /><int value="128"/></RGB></ShapeStyle
+	      ><list-DoublePoint
+		><X
+		  >0.2</X
+		><Y
+		  >-0.5</Y
+		><X
+		  >0.0</X
+		><Y
+		  >0.5</Y></list-DoublePoint></Lines></list-Shape></Composite></Right-Shape></Shape
+      ><Info><list-Int/></Info></Node></Nodes
+  ><Edges
+    ><Edge id="E1"
+      ><From
+	>1</From
+      ><To
+	>2</To
+      ><Via
+      /><Info><list-Int/></Info></Edge
+    ><Edge id="E3"
+      ><From
+	>3</From
+      ><To
+	>4</To
+      ><Via
+      /><Info><list-Int/></Info></Edge
+    ><Edge id="E4"
+      ><From
+	>2</From
+      ><To
+	>5</To
+      ><Via
+	><X
+	  >7.126111111111111</X
+	><Y
+	  >3.5277777777777777</Y></Via
+      ><Info><list-Int/></Info></Edge
+    ><Edge id="E5"
+      ><From
+	>5</From
+      ><To
+	>3</To
+      ><Via
+	><X
+	  >12.065000000000001</X
+	><Y
+	  >3.5277777777777777</Y></Via
+      ><Info><list-Int/></Info></Edge
+    ><Edge id="E6"
+      ><From
+	>2</From
+      ><To
+	>6</To
+      ><Via
+	><X
+	  >7.12611111111111</X
+	><Y
+	  >6.5263888888888895</Y></Via
+      ><Info><list-Int/></Info></Edge
+    ><Edge id="E7"
+      ><From
+	>6</From
+      ><To
+	>3</To
+      ><Via
+	><X
+	  >11.959166666666667</X
+	><Y
+	  >6.526388888888889</Y></Via
+      ><Info><list-Int/></Info></Edge></Edges></Network>

@@ -1,0 +1,55 @@
+  Palette
+  [ ("circle"
+    , ( Circle  { shapeStyle = ShapeStyle { styleStrokeWidth = 1
+                                        , styleStrokeColour = RGB 0 0 0
+                                        , styleFill = RGB 128 200 128
+                                        }
+              , shapeRadius = 0.5 }
+      , Just [] ))
+  , ("square"
+    , ( Polygon { shapeStyle = ShapeStyle { styleStrokeWidth = 2
+                                        , styleStrokeColour = RGB 0 0 0
+                                        , styleFill = RGB 200 128 200
+                                        }
+              , shapePerimeter = [ DoublePoint (-0.5) (-0.5)
+                                 , DoublePoint 0.5 (-0.5)
+                                 , DoublePoint 0.5 0.5
+                                 , DoublePoint (-0.5) 0.5 ] }
+      , Just [] ))
+  , ("triangle left"
+    , ( Polygon { shapeStyle = ShapeStyle { styleStrokeWidth = 1
+                                        , styleStrokeColour = RGB 0 0 0
+                                        , styleFill = RGB 128 200 200
+                                        }
+              , shapePerimeter = [ DoublePoint (-0.5) 0
+                                 , DoublePoint 0.5 (-0.5)
+                                 , DoublePoint 0.5 0.5 ] }
+      , Just [] ))
+  , ("triangle right"
+    , ( Polygon { shapeStyle = ShapeStyle { styleStrokeWidth = 1
+                                        , styleStrokeColour = RGB 0 0 0
+                                        , styleFill = RGB 128 200 200
+                                        }
+              , shapePerimeter = [ DoublePoint (-0.5) (-0.5)
+                                 , DoublePoint (-0.5) 0.5
+                                 , DoublePoint 0.5 0.0 ] }
+      , Just [] ))
+  , ("wire"
+    , ( Composite { shapeSegments =
+                    [ Lines { shapeStyle = ShapeStyle
+                                               { styleStrokeWidth = 2
+                                               , styleStrokeColour = RGB 0 0 0
+                                               , styleFill = RGB 128 128 128
+                                               }
+                            , shapePerimeter = [ DoublePoint 0.0 (-0.5)
+                                               , DoublePoint (-0.2) 0.5 ] }
+                    , Lines { shapeStyle = ShapeStyle
+                                               { styleStrokeWidth = 2
+                                               , styleStrokeColour = RGB 0 0 0
+                                               , styleFill = RGB 128 128 128
+                                               }
+                            , shapePerimeter = [ DoublePoint 0.2 (-0.5)
+                                               , DoublePoint 0.0 0.5 ] }
+                    ] }
+      , Just [] ))
+  ]

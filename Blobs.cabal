@@ -1,0 +1,14 @@
+Name:            Blobs
+Version:         0.1
+License:         LGPL
+Author:          Arjan van IJzendoorn, Martijn Schrage, Malcolm Wallace
+Description:     Diagram editor
+Homepage:        http://www.cs.york.ac.uk/fp/darcs/Blobs/
+Build-Depends:   base, haskell98, wx >= 0.9, wxcore >= 0.9, HaXml >= 1.14, lang
+
+executable: blobs
+main-is: Main.hs
+Hs-Source-Dirs:  src lib/DData
+Ghc-Options:     -O2
+Extensions:      ForeignFunctionInterface, MultiParamTypeClasses
+
