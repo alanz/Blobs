@@ -1,3 +1,4 @@
+{-# LANGUAGE FlexibleInstances #-}
 module Main (main, gain) where
 
 import NetworkUI
@@ -7,8 +8,8 @@ import InfoKind
 
 import Network
 import Operations
-import IntMap (IntMap)
-import qualified IntMap
+--import IntMap (IntMap)
+import qualified Data.IntMap as IntMap
 import List (nub)
 import Maybe (fromJust)
 
@@ -44,13 +45,13 @@ graphOps = GraphOps { ioOps = map pureGraphOp
               , IntMap.map (setEdgeInfo blank) edgemap)
 
 -- Every edge is augmented with the sum of the numbers in its from-node.
-pushAlongEdge :: IntMap (Node [Int]) -> Edge [Int] -> Edge [Int]
+pushAlongEdge :: IntMap.IntMap (Node [Int]) -> Edge [Int] -> Edge [Int]
 nodemap `pushAlongEdge` edge = setEdgeInfo (nub (sum n: getEdgeInfo edge)) edge
   where n = (getInfo . fromJust . flip IntMap.lookup nodemap . getEdgeFrom)
             edge
 
 -- Every node is augmented with a list of all the numbers in its incoming edges.
-accumulateIn :: IntMap (Edge [Int]) -> NodeNr -> Node [Int] -> Node [Int]
+accumulateIn :: IntMap.IntMap (Edge [Int]) -> NodeNr -> Node [Int] -> Node [Int]
 (edgemap `accumulateIn` nr) node = setInfo (nub (es++getInfo node)) node
   where es = (concat . IntMap.elems
              . IntMap.map getEdgeInfo

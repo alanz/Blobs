@@ -1,6 +1,11 @@
+{-# LANGUAGE MultiParamTypeClasses #-}
+{-# LANGUAGE FunctionalDependencies #-}
+{-# LANGUAGE FlexibleInstances #-}
+{-# LANGUAGE UndecidableInstances #-}
 module InfoKind where
 
-import Text.ParserCombinators.TextParser
+--import Text.ParserCombinators.TextParser
+import Text.Parsec
 import Text.XML.HaXml.XmlContent
 
 -- | The @InfoKind@ class is a predicate that ensures we can always create
@@ -8,7 +13,7 @@ import Text.XML.HaXml.XmlContent
 --   write them to/from the user, and that there exists some method of
 --   determining the correctness of the value (completeness/consistency etc)
 --   against some global type.
-class (Eq a, Show a, Parse a, XmlContent a) => InfoKind a g | a -> g where
+class (Eq a, Show a {-, Parse a, XmlContent a -}) => InfoKind a g | a -> g where
     blank :: a
     check :: String -> g -> a -> [String]		-- returns warnings
 	-- ^ first arg is container label for error reporting.

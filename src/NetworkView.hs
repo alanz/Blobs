@@ -24,8 +24,8 @@ import DisplayOptions
 import InfoKind
 
 import Prelude hiding (catch)
-import Exception
-import qualified IntMap
+import Control.Exception
+import qualified Data.IntMap as IntMap
 
 drawCanvas :: (InfoKind n g, InfoKind e g, Descriptor g) =>
               Document g n e -> DC () -> DisplayOptions -> IO ()
@@ -45,10 +45,19 @@ drawCanvas doc dc opt =
     ; set dc [ fontFamily := FontDefault, fontSize := 10 ]
 
     ; catch (reallyDrawCanvas doc screenPPI dc opt)
+        (h1 dc dcPPI )
+        {-
         (\e -> logicalText dcPPI dc (DoublePoint 50 50)
                            ("Exception while drawing: "++show e)
                            (Justify LeftJ TopJ)  [] )
+        -}
     }
+
+h1 :: DC () -> Size2D Int -> SomeException -> IO ()
+h1 dc dcPPI e = logicalText dcPPI dc (DoublePoint 50 50)
+                   ("Exception while drawing: "++show e)
+                   (Justify LeftJ TopJ)  []
+
 
 reallyDrawCanvas :: (InfoKind n g, InfoKind e g, Descriptor g) =>
                     Document g n e -> Size -> DC () -> DisplayOptions -> IO ()
@@ -143,7 +152,7 @@ reallyDrawCanvas doc ppi dc opt =
                                            Justify _ TopJ    -> 0
                                            Justify _ MiddleJ -> textHeight/2
                                            Justify _ BottomJ -> textHeight
-                  
+
             ; logicalRect ppi dc
                 (x - textWidth/2 - horizontalMargin) (topleftY)
                 (textWidth+2*horizontalMargin) (textHeight+2*verticalMargin)

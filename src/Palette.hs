@@ -2,7 +2,8 @@ module Palette where
 
 import List (nub, (\\))
 import Shape
-import Text.ParserCombinators.TextParser as Parse
+-- import Text.ParserCombinators.TextParser as Parse
+import Text.Parsec as Parse
 
 data Palette a = Palette [ (String, (Shape, Maybe a)) ]
   deriving (Eq, Show, Read)
@@ -23,6 +24,7 @@ empty = Palette [("circle", (Shape.circle, Nothing))]
 instance Functor Palette where
     fmap _ (Palette p) = Palette (map (\ (n,(s,i))-> (n,(s,Nothing))) p)
 
+{-
 instance Parse a => Parse (Palette a) where
     parse = do{ isWord "Palette"; fmap Palette $ parse }
-
+-}

@@ -5,7 +5,8 @@ import Graphics.UI.WX as WX
 import Graphics.UI.WXCore hiding (Colour)
 import Graphics.UI.WXCore.Draw
 import Math
-import Text.ParserCombinators.TextParser
+--import Text.ParserCombinators.TextParser
+import Text.Parsec
 --import Text.XML.HaXml.XmlContent
 --import NetworkFile
 
@@ -28,6 +29,7 @@ data ShapeStyle = ShapeStyle
     }
   deriving (Eq, Show, Read)
 
+{-
 instance Parse Shape where
   parse = oneOf
       [ do{ isWord "Circle"
@@ -63,6 +65,7 @@ instance Parse ShapeStyle where
                 `discard` isWord "," `apply` field "styleFill"
                 `discard` isWord "}"
             }
+-}
 
 {-
 instance HTypeable Shape where

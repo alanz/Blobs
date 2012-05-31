@@ -1,8 +1,9 @@
-module Common (module Common, module IOExts, module Colors) where
+module Common (module Common {-, module IOExts-}, module Colors) where
 
 import Colors
-import IOExts(trace)
-import qualified IntMap
+-- import IOExts(trace)
+import Debug.Trace (trace)
+import qualified Data.IntMap as IntMap
 import Char(isSpace)
 import GHC.Float(formatRealFloat, FFFormat(FFFixed))
 import List

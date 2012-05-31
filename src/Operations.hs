@@ -6,7 +6,7 @@ import State
 import Document
 import qualified PersistentDocument as PD
 
-import IntMap
+import qualified Data.IntMap as IntMap
 
 -- | @GraphOps@ is a data structure holding a bunch of named operations
 --   on the graph network.  An operation is simply executed in the I/O monad,
@@ -19,8 +19,8 @@ callGraphOp opName graphOps state =
   maybe (return ()) ($ state) (Prelude.lookup opName (ioOps graphOps))
 
 type PureOp g n e = -- (InfoKind n g, InfoKind e g)
-                       (g, IntMap (Node n), IntMap (Edge e))
-                    -> (g, IntMap (Node n), IntMap (Edge e))
+                       (g, IntMap.IntMap (Node n), IntMap.IntMap (Edge e))
+                    -> (g, IntMap.IntMap (Node n), IntMap.IntMap (Edge e))
 type IOOp g n e   = -- (InfoKind n g, InfoKind e g) =>
                        State g n e
                     -> IO ()
@@ -40,8 +40,8 @@ pureGraphOp (opName,operation) =
                             n = networkNodes network
                             e = networkEdges network
                             (g',n',e') = operation (g,n,e)
-                            network' = setNodeAssocs (assocs n')
-                                       $ setEdgeAssocs (assocs e')
+                            network' = setNodeAssocs (IntMap.assocs n')
+                                       $ setEdgeAssocs (IntMap.assocs e')
                                        $ setGlobalInfo g'
                                        $ network
                       ; PD.updateDocument opName (setNetwork network') pDoc

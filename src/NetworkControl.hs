@@ -14,7 +14,7 @@ module NetworkControl
     , reArityNode
     , changeGlobalInfo
     ) where
-    
+
 import State
 import StateUtil
 import Network
@@ -22,26 +22,27 @@ import NetworkView (edgeContains)
 import Document
 import Common
 import CommonIO
-import Math 
+import Math
 import Shape
-import qualified PersistentDocument as PD 
+import qualified PersistentDocument as PD
 import InfoKind
 import Palette (shapes)
-import Text.ParserCombinators.TextParser as Parse
+--import Text.ParserCombinators.TextParser as Parse
+import Text.Parsec as Parse hiding (State,getPosition,setPosition)
 import Char (isSpace)
 
 import Graphics.UI.WX hiding (Selection)
 import Graphics.UI.WXCore
 
 changeNamePosition :: Bool -> State g n e -> IO ()
-changeNamePosition above state = 
+changeNamePosition above state =
   do{ pDoc <- getDocument state
     ; doc <- PD.getDocument pDoc
     ; case getSelection doc of
-        NodeSelection nodeNr -> 
+        NodeSelection nodeNr ->
           do{ PD.updateDocument "move label"
-                (updateNetwork 
-                    (updateNode nodeNr 
+                (updateNetwork
+                    (updateNode nodeNr
                         (setNameAbove above))) pDoc
             ; repaintAll state
             }
@@ -49,14 +50,14 @@ changeNamePosition above state =
     }
 
 changeNodeShape :: InfoKind n g => String -> n -> State g n e -> IO ()
-changeNodeShape shapename info state = 
+changeNodeShape shapename info state =
   do{ pDoc <- getDocument state
     ; doc <- PD.getDocument pDoc
     ; case getSelection doc of
-        NodeSelection nodeNr -> 
+        NodeSelection nodeNr ->
           do{ PD.updateDocument "change shape"
-                (updateNetwork 
-                    (updateNode nodeNr 
+                (updateNetwork
+                    (updateNode nodeNr
                         (setInfo info . setShape (Left shapename)))) pDoc
             ; repaintAll state
             }
@@ -64,18 +65,18 @@ changeNodeShape shapename info state =
     }
 
 deleteSelection :: State g n e -> IO ()
-deleteSelection state = 
+deleteSelection state =
   do{ pDoc <- getDocument state
     ; doc <- PD.getDocument pDoc
     ; case getSelection doc of
-        NodeSelection nodeNr -> 
+        NodeSelection nodeNr ->
           do{ PD.updateDocument "delete node"
-                ( setSelection NoSelection 
+                ( setSelection NoSelection
                 . updateNetwork (removeNode nodeNr)
                 ) pDoc
             ; repaintAll state
             }
-        EdgeSelection edgeNr -> 
+        EdgeSelection edgeNr ->
           do{ PD.updateDocument "delete edge"
                 ( setSelection NoSelection
                 . updateNetwork (removeEdge edgeNr)
@@ -91,9 +92,9 @@ deleteSelection state =
             }
         _ -> return ()
     }
-  
+
 createNode :: InfoKind n g => DoublePoint -> State g n e -> IO ()
-createNode mousePoint state = 
+createNode mousePoint state =
   do{ pDoc <- getDocument state
     ; doc1 <- PD.getDocument pDoc
     ; let (shape,info) = case (shapes . getPalette . getNetwork) doc1 of
@@ -111,28 +112,28 @@ createNode mousePoint state =
     }
 
 selectNothing :: State g n e -> IO ()
-selectNothing state = 
+selectNothing state =
   do{ pDoc <- getDocument state
     ; PD.superficialUpdateDocument (setSelection NoSelection) pDoc
     ; repaintAll state
     }
 
 selectEdge :: Int -> State g n e -> IO ()
-selectEdge edgeNr state = 
+selectEdge edgeNr state =
   do{ pDoc <- getDocument state
     ; PD.superficialUpdateDocument (setSelection (EdgeSelection edgeNr)) pDoc
     ; repaintAll state
     }
 
 createEdge :: (InfoKind e g) => Int -> Int -> State g n e -> IO ()
-createEdge fromNodeNr toNodeNr state = 
+createEdge fromNodeNr toNodeNr state =
   do{ pDoc <- getDocument state
     ; PD.updateDocument "add edge"
         ( setSelection (NodeSelection fromNodeNr)
         . updateNetwork (addEdge fromNodeNr toNodeNr)
         ) pDoc
     ; repaintAll state
-    } 
+    }
 
 createVia :: DoublePoint -> State g n e -> IO ()
 createVia mousepoint state =
@@ -154,7 +155,7 @@ createVia mousepoint state =
     }
 
 selectVia :: Int -> Int -> State g n e -> IO ()
-selectVia edgeNr viaNr state = 
+selectVia edgeNr viaNr state =
   do{ pDoc <- getDocument state
     ; PD.superficialUpdateDocument (setSelection (ViaSelection edgeNr viaNr))
                                    pDoc
@@ -162,7 +163,7 @@ selectVia edgeNr viaNr state =
     }
 
 pickupVia :: Int -> Int -> DoublePoint -> State g n e -> IO ()
-pickupVia edgeNr viaNr mousePoint state = 
+pickupVia edgeNr viaNr mousePoint state =
   do{ pDoc <- getDocument state
     ; doc <- PD.getDocument pDoc
     ; let network = getNetwork doc
@@ -170,16 +171,16 @@ pickupVia edgeNr viaNr mousePoint state =
     ; setDragging (Just (False, mousePoint `subtractDoublePoint` viaPos)) state
     ; selectVia edgeNr viaNr state
     }
-    
+
 selectNode :: Int -> State g n e -> IO ()
-selectNode nodeNr state = 
+selectNode nodeNr state =
   do{ pDoc <- getDocument state
     ; PD.superficialUpdateDocument (setSelection (NodeSelection nodeNr)) pDoc
     ; repaintAll state
     }
 
 pickupNode :: Int -> DoublePoint -> State g n e -> IO ()
-pickupNode nodeNr mousePoint state = 
+pickupNode nodeNr mousePoint state =
   do{ pDoc <- getDocument state
     ; doc <- PD.getDocument pDoc
     ; let network = getNetwork doc
@@ -189,7 +190,7 @@ pickupNode nodeNr mousePoint state =
     }
 
 dragNode :: Int -> DoublePoint -> ScrolledWindow () -> State g n e -> IO ()
-dragNode nodeNr mousePoint canvas state = 
+dragNode nodeNr mousePoint canvas state =
   do{ pDoc <- getDocument state
     ; doc <- PD.getDocument pDoc
     ; Just (hasMoved, offset) <- getDragging state
@@ -198,24 +199,24 @@ dragNode nodeNr mousePoint canvas state =
     ; when (newPosition /= oldPosition) $
       do{ -- The first time the node is moved we have to remember
           -- the document in the undo history
-        ; (if not hasMoved then PD.updateDocument "move node" 
+        ; (if not hasMoved then PD.updateDocument "move node"
                            else PD.superficialUpdateDocument)
-                (updateNetwork (updateNode nodeNr 
-                    (setPosition newPosition))) 
+                (updateNetwork (updateNode nodeNr
+                    (setPosition newPosition)))
                 pDoc
         ; Graphics.UI.WX.repaint canvas
-        ; setDragging (Just (True, offset)) state 
-                -- yes, the node has really moved        
+        ; setDragging (Just (True, offset)) state
+                -- yes, the node has really moved
         }
     }
 
 dropNode :: Bool -> Int -> DoublePoint -> DoublePoint -> State g n e -> IO ()
-dropNode hasMoved nodeNr offset mousePoint state = 
+dropNode hasMoved nodeNr offset mousePoint state =
   do{ when hasMoved $
       do{ let newPosition = mousePoint `subtractDoublePoint` offset
         ; pDoc <- getDocument state
         ; PD.superficialUpdateDocument
-            (updateNetwork (updateNode nodeNr 
+            (updateNetwork (updateNode nodeNr
                 (setPosition newPosition))) pDoc
         }
     ; canvas <- getCanvas state
@@ -224,7 +225,7 @@ dropNode hasMoved nodeNr offset mousePoint state =
     }
 
 dragVia :: Int -> Int -> DoublePoint -> ScrolledWindow () -> State g n e -> IO ()
-dragVia edgeNr viaNr mousePoint canvas state = 
+dragVia edgeNr viaNr mousePoint canvas state =
   do{ pDoc <- getDocument state
     ; doc <- PD.getDocument pDoc
     ; Just (hasMoved, offset) <- getDragging state
@@ -233,18 +234,18 @@ dragVia edgeNr viaNr mousePoint canvas state =
     ; when (newPosition /= oldPosition) $
       do{ -- The first time the point is moved we have to remember
           -- the document in the undo history
-        ; (if not hasMoved then PD.updateDocument "move control point" 
+        ; (if not hasMoved then PD.updateDocument "move control point"
                            else PD.superficialUpdateDocument)
                 (updateNetwork (updateVia edgeNr viaNr newPosition))
                 pDoc
         ; Graphics.UI.WX.repaint canvas
-        ; setDragging (Just (True, offset)) state 
-                -- yes, the point has really moved        
+        ; setDragging (Just (True, offset)) state
+                -- yes, the point has really moved
         }
     }
 
 dropVia :: Bool -> Int -> Int -> DoublePoint -> DoublePoint -> State g n e -> IO ()
-dropVia hasMoved edgeNr viaNr offset mousePoint state = 
+dropVia hasMoved edgeNr viaNr offset mousePoint state =
   do{ when hasMoved $
       do{ let newPosition = mousePoint `subtractDoublePoint` offset
         ; pDoc <- getDocument state
@@ -259,7 +260,7 @@ dropVia hasMoved edgeNr viaNr offset mousePoint state =
 
 selectMultiple :: Maybe (DoublePoint,DoublePoint) -> [Int] -> [(Int,Int)]
                   -> State g n e -> IO ()
-selectMultiple area nodeNrs viaNrs state = 
+selectMultiple area nodeNrs viaNrs state =
   do{ pDoc <- getDocument state
     ; PD.superficialUpdateDocument
               (setSelection (MultipleSelection area nodeNrs viaNrs))
@@ -268,14 +269,14 @@ selectMultiple area nodeNrs viaNrs state =
     }
 
 pickupMultiple :: [Int] -> [(Int,Int)] -> DoublePoint -> State g n e -> IO ()
-pickupMultiple _nodeNrs _viaNrs mousePoint state = 
+pickupMultiple _nodeNrs _viaNrs mousePoint state =
   do{ setDragging (Just (False, mousePoint)) state
 --  ; selectMultiple Nothing nodeNrs viaNrs state	-- already selected
     }
 
 dragMultiple :: [Int] -> [(Int,Int)] -> DoublePoint -> ScrolledWindow ()
                 -> State g n e -> IO ()
-dragMultiple nodeNrs viaNrs mousePoint canvas state = 
+dragMultiple nodeNrs viaNrs mousePoint canvas state =
   do{ pDoc <- getDocument state
  -- ; doc <- PD.getDocument pDoc
     ; Just (hasMoved, origin) <- getDragging state
@@ -283,13 +284,13 @@ dragMultiple nodeNrs viaNrs mousePoint canvas state =
     ; when (mousePoint /= origin) $
       do{ -- The first time the point is moved we have to remember
           -- the document in the undo history
-        ; (if not hasMoved then PD.updateDocument "move control point" 
+        ; (if not hasMoved then PD.updateDocument "move control point"
                            else PD.superficialUpdateDocument)
                 (updateNetwork (updateMultiple nodeNrs viaNrs offset))
                 pDoc
         ; Graphics.UI.WX.repaint canvas
-        ; setDragging (Just (True, mousePoint)) state 
-                -- yes, the point has really moved        
+        ; setDragging (Just (True, mousePoint)) state
+                -- yes, the point has really moved
         }
     }
 
@@ -306,7 +307,7 @@ updateMultiple ns vs o network =
 
 dropMultiple :: Bool -> [Int] -> [(Int,Int)] -> DoublePoint -> DoublePoint
                 -> State g n e -> IO ()
-dropMultiple hasMoved nodeNrs viaNrs origin mousePoint state = 
+dropMultiple hasMoved nodeNrs viaNrs origin mousePoint state =
   do{ when hasMoved $
       do{ pDoc <- getDocument state
         ; PD.superficialUpdateDocument
@@ -321,7 +322,7 @@ dropMultiple hasMoved nodeNrs viaNrs origin mousePoint state =
     }
 
 pickupArea :: DoublePoint -> State g n e -> IO ()
-pickupArea mousePoint state = 
+pickupArea mousePoint state =
   do{ setDragging (Just (False, mousePoint)) state
     ; selectMultiple (Just (mousePoint,mousePoint)) [] [] state
     }
@@ -329,7 +330,7 @@ pickupArea mousePoint state =
 -- dragArea is not like dragging a selection.  It does not move anything.
 -- It only adds items into a multiple selection.
 dragArea :: DoublePoint -> State g n e -> IO ()
-dragArea mousePoint state = 
+dragArea mousePoint state =
   do{ pDoc <- getDocument state
     ; doc  <- PD.getDocument pDoc
     ; Just (_, origin) <- getDragging state
@@ -350,7 +351,7 @@ dragArea mousePoint state =
         )
 
 dropArea :: DoublePoint -> DoublePoint -> State g n e -> IO ()
-dropArea _origin mousePoint state = 
+dropArea _origin mousePoint state =
   do{ dragArea mousePoint state	-- calculate enclosure area
     ; pDoc <- getDocument state
     ; doc <- PD.getDocument pDoc
@@ -367,7 +368,7 @@ dropArea _origin mousePoint state =
 
 
 renameNode :: Frame () -> State g n e -> IO ()
-renameNode theFrame state = 
+renameNode theFrame state =
   do{ pDoc <- getDocument state
     ; doc <- PD.getDocument pDoc
     ; let network = getNetwork doc
@@ -378,7 +379,7 @@ renameNode theFrame state =
                                          "Rename node" oldName True
                 ; ifJust result $ \newName ->
                       do{ PD.updateDocument "rename node"
-                            (updateNetwork 
+                            (updateNetwork
                               (updateNode nodeNr (setName newName))) pDoc
                         ; repaintAll state
                         }
@@ -387,7 +388,7 @@ renameNode theFrame state =
     }
 
 reArityNode :: Frame () -> State g n e -> IO ()
-reArityNode theFrame state = 
+reArityNode theFrame state =
   do{ pDoc <- getDocument state
     ; doc <- PD.getDocument pDoc
     ; let network = getNetwork doc
@@ -398,6 +399,8 @@ reArityNode theFrame state =
                                          "Change arity of node" (show oldArity)
                                          True
                 ; ifJust result $ \newArity ->
+                    do repaintAll state -- Until we sort out the parser
+                  {-
                   case Parse.runParser Parse.parse newArity of
                     (Right x, s) ->
                         do{ when (not (null s || all isSpace s)) $
@@ -405,7 +408,7 @@ reArityNode theFrame state =
                                       ("Excess text after parsed value."
                                       ++"\nRemaining text: "++s)
                           ; PD.updateDocument "change node arity"
-                              (updateNetwork 
+                              (updateNetwork
                                 (updateNode nodeNr (setArity x))) pDoc
                           ; repaintAll state
                           }
@@ -413,13 +416,14 @@ reArityNode theFrame state =
                                           ("Cannot parse entered text."
                                           ++"\nReason: "++err
                                           ++"\nRemaining text: "++s)
+                   -}
                 }
         _ -> return ()
     }
 
 reinfoNodeOrEdge :: (InfoKind n g, InfoKind e g) =>
                     Frame () -> State g n e -> IO ()
-reinfoNodeOrEdge theFrame state = 
+reinfoNodeOrEdge theFrame state =
   do{ pDoc <- getDocument state
     ; doc <- PD.getDocument pDoc
     ; let network = getNetwork doc
@@ -429,6 +433,9 @@ reinfoNodeOrEdge theFrame state =
             ; result <- myTextDialog theFrame MultiLine
                                      "Edit node info" (show oldInfo) True
             ; ifJust result $ \newInfo ->
+                  do repaintAll state -- Until we sort out the parser
+
+                  {-
                   case Parse.runParser Parse.parse newInfo of
                     (Right x, s) ->
                         do{ when (not (null s || all isSpace s)) $
@@ -442,7 +449,7 @@ reinfoNodeOrEdge theFrame state =
                                         ("Validity check fails:\n"
                                         ++unlines e)
                           ; PD.updateDocument "edit node info"
-                              (updateNetwork 
+                              (updateNetwork
                                 (updateNode nodeNr (setInfo x))) pDoc
                           ; repaintAll state
                           }
@@ -450,12 +457,15 @@ reinfoNodeOrEdge theFrame state =
                                           ("Cannot parse entered text."
                                           ++"\nReason: "++err
                                           ++"\nRemaining text: "++s)
+                    -}
             }
         EdgeSelection edgeNr ->
           do{ let oldInfo = getEdgeInfo (getEdge edgeNr network)
             ; result <- myTextDialog theFrame MultiLine
                                      "Edit edge info" (show oldInfo) True
             ; ifJust result $ \newInfo ->
+                  do repaintAll state -- Until we sort out the parser
+                  {-
                   case Parse.runParser Parse.parse newInfo of
                     (Right x, s) ->
                         do{ when (not (null s || all isSpace s)) $
@@ -469,7 +479,7 @@ reinfoNodeOrEdge theFrame state =
                                         ("Validity check fails:\n"
                                         ++unlines e)
                           ; PD.updateDocument "edit edge info"
-                              (updateNetwork 
+                              (updateNetwork
                                 (updateEdge edgeNr (setEdgeInfo x))) pDoc
                           ; repaintAll state
                           }
@@ -477,13 +487,14 @@ reinfoNodeOrEdge theFrame state =
                                           ("Cannot parse entered text."
                                           ++"\nReason: "++err
                                           ++"\nRemaining text: "++s)
+                  -}
             }
         _ -> return ()
     }
 
-changeGlobalInfo :: (Show g, Parse g, Descriptor g) =>
+changeGlobalInfo :: (Show g, {- Parse g,-} Descriptor g) =>
                     Frame () -> State g n e -> IO ()
-changeGlobalInfo theFrame state = 
+changeGlobalInfo theFrame state =
   do{ pDoc <- getDocument state
     ; doc <- PD.getDocument pDoc
     ; let network = getNetwork doc
@@ -491,6 +502,9 @@ changeGlobalInfo theFrame state =
     ; result <- myTextDialog theFrame MultiLine ("Edit "++descriptor info)
                              (show info) True
     ; ifJust result $ \newInfo->
+                        do repaintAll state -- Until we sort out the parser
+
+          {-
           case Parse.runParser Parse.parse newInfo of
             (Right x, s) ->
                 do{ when (not (null s || all isSpace s)) $
@@ -505,5 +519,6 @@ changeGlobalInfo theFrame state =
                                   ("Cannot parse entered text."
                                   ++"\nReason: "++err
                                   ++"\nRemaining text: "++s)
+          -}
     }
 

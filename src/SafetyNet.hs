@@ -2,7 +2,8 @@ module SafetyNet where
 
 import Graphics.UI.WX hiding (window)
 import Prelude hiding (catch)
-import Exception
+import Control.Exception (SomeException,Exception,catch)
+
 
 safetyNet :: Window a -> IO b -> IO ()
 safetyNet window computation =
@@ -12,7 +13,7 @@ safetyNet window computation =
     ; return ()
     }
 
-handler :: Window a -> Exception -> IO ()
+handler :: Window a -> SomeException -> IO ()
 handler window exception =
   do{ putStrLn $ "SafetyNet exception: " ++ show exception
     ; errorDialog window "Exception"

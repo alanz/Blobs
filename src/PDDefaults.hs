@@ -25,14 +25,14 @@ type Extensions = [(String, [String])]
 -- action will be undone. If there is nothing
 -- to undo the corresponding menu item is disabled
 defaultUpdateUndo :: MenuItem () -> Bool -> String -> IO ()
-defaultUpdateUndo undoItem enable message = 
+defaultUpdateUndo undoItem enable message =
     set undoItem
         [ text := "Undo " ++ message ++ "\tCtrl+Z"
         , enabled := enable
         ]
-    
+
 defaultUpdateRedo :: MenuItem () -> Bool -> String -> IO ()
-defaultUpdateRedo redoItem enable message = 
+defaultUpdateRedo redoItem enable message =
     set redoItem
         [ text := "Redo " ++ message ++ "\tCtrl+Y"
         , enabled := enable
@@ -40,16 +40,16 @@ defaultUpdateRedo redoItem enable message =
 
 -- Enable the save item only if the document is dirty
 defaultUpdateSave :: MenuItem () ->  Bool -> IO ()
-defaultUpdateSave saveItem enable = 
+defaultUpdateSave saveItem enable =
     set saveItem [ enabled := enable ]
 
 -- Update the title bar: program name - document name followed by "(modified)" if
 -- the document is dirty
 defaultUpdateTitlebar :: Frame () -> String -> Maybe String -> Bool -> IO ()
-defaultUpdateTitlebar theFrame programName theFileName modified = 
+defaultUpdateTitlebar theFrame programName theFileName modified =
     let newTitle = programName
-                  ++ " - " 
-                  ++ (case theFileName of Nothing -> "untitled"; Just name -> name) 
+                  ++ " - "
+                  ++ (case theFileName of Nothing -> "untitled"; Just name -> name)
                   ++ (if modified then " (modified)" else "")
     in set theFrame [ text := newTitle ]
 
@@ -57,22 +57,23 @@ defaultUpdateTitlebar theFrame programName theFileName modified =
 --   return values: Don't Save -> Just False, Save -> Just True
 --   Cancel -> Nothing
 defaultSaveChangesDialog :: Frame () -> String -> IO (Maybe Bool)
-defaultSaveChangesDialog parentWindow theProgramName = 
+defaultSaveChangesDialog parentWindow theProgramName =
   do{ d <- dialog parentWindow [text := theProgramName]
     ; p <- panel d []
     ; msg      <- staticText p [text := "Do you want to save the changes?"]
     ; dontsaveB <- button p [text := "Don't Save"]
-    ; saveB     <- button p [text := "Save"] 
-    ; cancelB   <- button p [text := "Cancel", identity := wxID_CANCEL ]           
-    ; set d [layout :=  margin 10 $ container p $ 
+    ; saveB     <- button p [text := "Save"]
+    ; cancelB   <- button p [text := "Cancel", identity := wxID_CANCEL ]
+    ; set d [layout :=  margin 10 $ container p $
                 column 10 [ hfill $ widget msg
-                          , row 50 [ floatBottomLeft  $ widget dontsaveB 
+                          , row 50 [ floatBottomLeft  $ widget dontsaveB
                                    , floatBottomRight $ row 5 [ widget saveB, widget cancelB]
                                    ]
                           ]
-            ]            
-    ; set p [ defaultButton := saveB ]            
-    ; showModal d $ \stop -> 
+            ]
+    -- ; set p [ defaultButton := saveB ]
+    ; set d [ defaultButton := saveB ]
+    ; showModal d $ \stop ->
                 do set dontsaveB  [on command := stop (Just False) ]
                    set saveB      [on command := stop (Just True) ]
                    set cancelB    [on command := stop Nothing ]

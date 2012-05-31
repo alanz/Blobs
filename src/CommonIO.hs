@@ -275,9 +275,11 @@ resizeGrid theGrid nrOfRows nrOfCols =
 --   (-32000, -32000) for a minimized window :-)
 safeGetPosition :: Frame a -> IO (Int, Int)
 safeGetPosition f =
-  do{ isMax <- frameIsMaximized f
-    ; isMin <- frameIsIconized  f
-    ; when (isMax || isMin) $ frameRestore f
+  do{ -- isMax <- frameIsMaximized f
+      isMax <- frameIsFullScreen f
+    -- ; isMin <- frameIsIconized  f
+    -- ; when (isMax || isMin) $ frameRestore f
+    ; when (isMax) $ frameRestore f
     ; p <- get f position
     ; return (pointX p, pointY p)
     }

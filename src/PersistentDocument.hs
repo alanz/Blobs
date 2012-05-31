@@ -54,7 +54,8 @@ module PersistentDocument
     , save, saveAs, isClosingOkay
     ) where
 
-import IOExts(IORef, newIORef, writeIORef, readIORef)
+--import IOExts(IORef, newIORef, writeIORef, readIORef)
+import Data.IORef(IORef, newIORef, writeIORef, readIORef)
 import Monad(when)
 
 -- | A persistent document is a mutable variable. This way functions

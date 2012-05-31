@@ -11,13 +11,14 @@ import Math (DoublePoint)
 import qualified PersistentDocument as PD
 import Palette
 import InfoKind
-import Text.ParserCombinators.TextParser
+--import Text.ParserCombinators.TextParser
+import Text.Parsec hiding (State)
 
 import Graphics.UI.WX
 import Graphics.UI.WXCore(windowGetMousePosition)
 
 -- | Context menu for empty area of canvas
-canvas :: (InfoKind n g, Show g, Parse g, Descriptor g) =>
+canvas :: (InfoKind n g, Show g,{- Parse g,-} Descriptor g) =>
           Frame () -> State g n e -> IO ()
 canvas theFrame state =
   do{ contextMenu <- menuPane []

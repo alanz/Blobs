@@ -10,12 +10,13 @@ import Document
 import qualified ContextMenu
 import qualified PersistentDocument as PD
 import InfoKind
-import Text.ParserCombinators.TextParser
+--import Text.ParserCombinators.TextParser
+import Text.Parsec hiding (State)
 
 import Graphics.UI.WX
 import Graphics.UI.WXCore
 
-mouseDown :: (InfoKind n g, InfoKind e g, Show g, Parse g, Descriptor g) =>
+mouseDown :: (InfoKind n g, InfoKind e g, Show g, {-Parse g,-} Descriptor g) =>
              Bool -> Point -> Frame () -> State g n e -> IO ()
 mouseDown leftButton mousePoint theFrame state =
   do{ pDoc <- getDocument state
