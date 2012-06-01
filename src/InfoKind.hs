@@ -12,7 +12,7 @@ import Text.XML.HaXml.XmlContent
 --   write them to/from the user, and that there exists some method of
 --   determining the correctness of the value (completeness/consistency etc)
 --   against some global type.
-class (Eq a, Show a, Parse a{-, XmlContent a -}) => InfoKind a g | a -> g where
+class (Eq a, Show a, Parse a, XmlContent a) => InfoKind a g | a -> g where
     blank :: a
     check :: String -> g -> a -> [String]		-- returns warnings
 	-- ^ first arg is container label for error reporting.
@@ -35,3 +35,9 @@ class (Show a) => Descriptor a where
     descriptor _ = "type descriptor was left undefined"
 instance Descriptor () where
     descriptor _ = "null global info type"
+
+-- -----------------------------------------------
+instance XmlContent () where
+  toContents = undefined
+  parseContents = undefined
+

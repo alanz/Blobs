@@ -50,7 +50,7 @@ getConfig state =
     }
 
 create :: (InfoKind n g, InfoKind e g
-          , {-XmlContent g,-} Parse g, Show g, Descriptor g) =>
+          , XmlContent g, Parse g, Show g, Descriptor g) =>
           State g n e -> g -> n -> e -> GraphOps g n e -> IO ()
 create state g n e ops =
   do{ theFrame <- frame [ text := "Diagram editor"
@@ -300,7 +300,7 @@ newItem state g n e =
         ; repaintAll state
         }
 
-openItem :: (InfoKind n g, InfoKind e g{-, XmlContent g-}) =>
+openItem :: (InfoKind n g, InfoKind e g, XmlContent g) =>
             Frame () ->  State g n e -> IO ()
 openItem theFrame state =
   do{ mbfname <- fileOpenDialog
@@ -315,7 +315,7 @@ openItem theFrame state =
 
 -- Third argument: Nothing means exceptions are ignored (used in Configuration)
 --              Just f means exceptions are shown in a dialog on top of frame f
-openNetworkFile :: (InfoKind n g, InfoKind e g{-, XmlContent g-}) =>
+openNetworkFile :: (InfoKind n g, InfoKind e g, XmlContent g) =>
                    String -> State g n e -> Maybe (Frame ()) -> IO ()
 openNetworkFile fname state exceptionsFrame =
   closeDocAndThen state $
@@ -424,7 +424,7 @@ applyCanvasSize state =
                                      (logicalToScreenY ppi height) ]
     }
 
-saveToDisk :: (InfoKind n g, InfoKind e g{-, XmlContent g-}) =>
+saveToDisk :: (InfoKind n g, InfoKind e g, XmlContent g) =>
               Frame () -> String -> Document.Document g n e -> IO Bool
 saveToDisk theFrame fileName doc =
     safeWriteFile theFrame fileName (NetworkFile.toString (getNetwork doc))
