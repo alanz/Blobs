@@ -27,8 +27,7 @@ import Shape
 import qualified PersistentDocument as PD
 import InfoKind
 import Palette (shapes)
---import Text.ParserCombinators.TextParser as Parse
-import Text.Parsec as Parse hiding (State,getPosition,setPosition)
+import Text.Parse
 import Char (isSpace)
 
 import Graphics.UI.WX hiding (Selection)
@@ -399,9 +398,8 @@ reArityNode theFrame state =
                                          "Change arity of node" (show oldArity)
                                          True
                 ; ifJust result $ \newArity ->
-                    do repaintAll state -- Until we sort out the parser
-                  {-
-                  case Parse.runParser Parse.parse newArity of
+                    -- do repaintAll state -- Until we sort out the parser
+                  case runParser parse newArity of
                     (Right x, s) ->
                         do{ when (not (null s || all isSpace s)) $
                                 errorDialog theFrame "Edit warning"
@@ -416,7 +414,6 @@ reArityNode theFrame state =
                                           ("Cannot parse entered text."
                                           ++"\nReason: "++err
                                           ++"\nRemaining text: "++s)
-                   -}
                 }
         _ -> return ()
     }
@@ -433,10 +430,8 @@ reinfoNodeOrEdge theFrame state =
             ; result <- myTextDialog theFrame MultiLine
                                      "Edit node info" (show oldInfo) True
             ; ifJust result $ \newInfo ->
-                  do repaintAll state -- Until we sort out the parser
-
-                  {-
-                  case Parse.runParser Parse.parse newInfo of
+                  -- do repaintAll state -- Until we sort out the parser
+                  case runParser parse newInfo of
                     (Right x, s) ->
                         do{ when (not (null s || all isSpace s)) $
                                 errorDialog theFrame "Edit warning"
@@ -457,16 +452,14 @@ reinfoNodeOrEdge theFrame state =
                                           ("Cannot parse entered text."
                                           ++"\nReason: "++err
                                           ++"\nRemaining text: "++s)
-                    -}
             }
         EdgeSelection edgeNr ->
           do{ let oldInfo = getEdgeInfo (getEdge edgeNr network)
             ; result <- myTextDialog theFrame MultiLine
                                      "Edit edge info" (show oldInfo) True
             ; ifJust result $ \newInfo ->
-                  do repaintAll state -- Until we sort out the parser
-                  {-
-                  case Parse.runParser Parse.parse newInfo of
+                  -- do repaintAll state -- Until we sort out the parser
+                  case runParser parse newInfo of
                     (Right x, s) ->
                         do{ when (not (null s || all isSpace s)) $
                                 errorDialog theFrame "Edit warning"
@@ -487,12 +480,11 @@ reinfoNodeOrEdge theFrame state =
                                           ("Cannot parse entered text."
                                           ++"\nReason: "++err
                                           ++"\nRemaining text: "++s)
-                  -}
             }
         _ -> return ()
     }
 
-changeGlobalInfo :: (Show g, {- Parse g,-} Descriptor g) =>
+changeGlobalInfo :: (Show g, Parse g, Descriptor g) =>
                     Frame () -> State g n e -> IO ()
 changeGlobalInfo theFrame state =
   do{ pDoc <- getDocument state
@@ -502,10 +494,8 @@ changeGlobalInfo theFrame state =
     ; result <- myTextDialog theFrame MultiLine ("Edit "++descriptor info)
                              (show info) True
     ; ifJust result $ \newInfo->
-                        do repaintAll state -- Until we sort out the parser
-
-          {-
-          case Parse.runParser Parse.parse newInfo of
+                        --do repaintAll state -- Until we sort out the parser
+          case runParser parse newInfo of
             (Right x, s) ->
                 do{ when (not (null s || all isSpace s)) $
                         errorDialog theFrame "Edit warning"
@@ -519,6 +509,5 @@ changeGlobalInfo theFrame state =
                                   ("Cannot parse entered text."
                                   ++"\nReason: "++err
                                   ++"\nRemaining text: "++s)
-          -}
     }
 

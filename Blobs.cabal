@@ -5,7 +5,7 @@ Author:          Arjan van IJzendoorn, Martijn Schrage, Malcolm Wallace
 Description:     Diagram editor
 Homepage:        http://www.cs.york.ac.uk/fp/darcs/Blobs/
 Build-Depends:   base, haskell98, wx >= 0.9, wxcore >= 0.9, HaXml >= 1.14
-                 , parsec, directory, pretty, containers
+                 , polyparse, directory, pretty, containers
                  -- , lang
 
 executable: blobs

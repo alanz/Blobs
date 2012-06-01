@@ -1,19 +1,18 @@
 module Colors where
 
 import Graphics.UI.WX
---import Text.ParserCombinators.TextParser
-import Text.Parsec
-import Text.Parsec.Char
+import Text.Parse
+
 
 -- Different spelling of colour/color to distinguish local/wx datatypes.
 data Colour = RGB !Int !Int !Int deriving (Eq,Show,Read)
 
-{-
+
 instance Parse Colour where
   parse = do { isWord "RGB"
              ; return RGB `apply` parse `apply` parse `apply` parse
              }
--}
+
 -- translate local to wx
 wxcolor :: Colour -> Color
 wxcolor (RGB r g b) = rgb r g b

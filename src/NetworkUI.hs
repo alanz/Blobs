@@ -19,8 +19,7 @@ import Palette
 import InfoKind
 import DisplayOptions
 import Text.XML.HaXml.XmlContent (XmlContent)
---import Text.ParserCombinators.TextParser as Parse
-import Text.Parsec as Parse hiding (State)
+import Text.Parse
 import Operations
 import NetworkControl (changeGlobalInfo)
 
@@ -51,7 +50,7 @@ getConfig state =
     }
 
 create :: (InfoKind n g, InfoKind e g
-          , {-XmlContent g,-} {-Parse g,-} Show g, Descriptor g) =>
+          , {-XmlContent g,-} Parse g, Show g, Descriptor g) =>
           State g n e -> g -> n -> e -> GraphOps g n e -> IO ()
 create state g n e ops =
   do{ theFrame <- frame [ text := "Diagram editor"
@@ -257,7 +256,7 @@ paintHandler state dc =
 extensions :: [(String, [String])]
 extensions = [ ("Blobs files (.blobs)", ["*.blobs"]) ]
 
-mouseEvent :: (InfoKind n g, InfoKind e g, Show g, {-Parse g,-} Descriptor g) =>
+mouseEvent :: (InfoKind n g, InfoKind e g, Show g, Parse g, Descriptor g) =>
               EventMouse -> ScrolledWindow () -> Frame () -> State g n e -> IO ()
 mouseEvent eventMouse canvas theFrame state = case eventMouse of
     MouseLeftDown mousePoint mods
@@ -372,7 +371,7 @@ openNetworkFile fname state exceptionsFrame =
     ; repaintAll state
     }}}
 
-openPalette :: (InfoKind n g{-, Parse n-}) => Frame () ->  State g n e -> IO ()
+openPalette :: (InfoKind n g, Parse n) => Frame () ->  State g n e -> IO ()
 openPalette theFrame state =
   do{ mbfname <- fileOpenDialog
         theFrame
@@ -386,7 +385,7 @@ openPalette theFrame state =
 
 -- Third argument: Nothing means exceptions are ignored (used in Configuration)
 --              Just f means exceptions are shown in a dialog on top of frame f
-openPaletteFile :: (InfoKind n g{-, Parse n-}) =>
+openPaletteFile :: (InfoKind n g, Parse n) =>
                    String -> State g n e -> Maybe (Frame ()) -> IO ()
 openPaletteFile fname state exceptionsFrame =
   flip catch
@@ -397,8 +396,7 @@ openPaletteFile fname state exceptionsFrame =
                     ++ "Reason: " ++ show exc)
     ) $
   do{ contents <- readFile fname
-    ; return () -- Dummy out for now
-    {-
+    -- ; return () -- Dummy out for now
     ; case fst (runParser parse contents) of {
         Left msg -> ioError (userError ("Cannot parse shape palette file: "
                                        ++fname++"\n\t"++msg));
@@ -410,7 +408,6 @@ openPaletteFile fname state exceptionsFrame =
                              pDoc
                       }
     }
-    -}
     }
 
 -- | Get the canvas size from the network and change the size of

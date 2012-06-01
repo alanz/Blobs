@@ -16,8 +16,7 @@ module Math
     ) where
 
 import Graphics.UI.WX(Point, point, pointX, pointY)
---import Text.ParserCombinators.TextParser
-import Text.Parsec
+import Text.Parse
 
 {-
 data DoublePoint = DoublePoint
@@ -29,12 +28,10 @@ data DoublePoint = DoublePoint
 data DoublePoint = DoublePoint !Double !Double
     deriving (Show, Eq, Read)
 
-{-
 instance Parse DoublePoint where
     parse = do { isWord "DoublePoint"
                ; return DoublePoint `apply` parse `apply` parse
                }
--}
 
 data Vector = Vector !Double !Double
 
