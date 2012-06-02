@@ -33,10 +33,9 @@ data-files:
 
 executable blobs
   main-is: Main.hs
-  Build-Depends:   base, haskell98, wx >= 0.9, wxcore >= 0.9, HaXml >= 1.14
+  Build-Depends:   base >= 4 && < 5, haskell98, wx >= 0.9, wxcore >= 0.9, HaXml >= 1.14
                    , polyparse, directory, pretty, containers
   Hs-Source-Dirs:  src lib/DData
-  Ghc-Options:     -O2
 
 source-repository head
   type:     git
