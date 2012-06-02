@@ -27,6 +27,10 @@ Extra-source-files:
   ./src/*.hs
   ./lib/DData/*.hs
 
+data-files:
+  Blobs.icns, blobs.png, dazzle.jpg, index.html, patch.icons,
+  simple.blobpalette, wiring.blobs
+
 executable blobs
   main-is: Main.hs
   Build-Depends:   base, haskell98, wx >= 0.9, wxcore >= 0.9, HaXml >= 1.14
