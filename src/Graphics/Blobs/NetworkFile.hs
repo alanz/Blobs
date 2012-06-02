@@ -4,7 +4,7 @@ module Graphics.Blobs.NetworkFile where
 import qualified Graphics.Blobs.Network as N
 import Graphics.Blobs.Math
 import Graphics.Blobs.Common
-import Graphics.Blobs.Colors
+--import Graphics.Blobs.Colors
 import Graphics.Blobs.Shape
 import Graphics.Blobs.InfoKind
 import Graphics.Blobs.Palette
@@ -17,11 +17,11 @@ import Text.XML.HaXml.Parse hiding (element)
 import Text.XML.HaXml.XmlContent.Haskell as XML
 import Text.XML.HaXml.Combinators (replaceAttrs)
 import Text.XML.HaXml.Verbatim
-import Text.XML.HaXml.TypeMapping (toDTD,toHType)
+--import Text.XML.HaXml.TypeMapping (toDTD,toHType)
 import Text.PrettyPrint.HughesPJ
 import qualified Text.XML.HaXml.Pretty as Pretty
 import Char
-import Maybe
+--import Maybe
 import Monad(when)
 import List(nub,isPrefixOf)
 
@@ -319,8 +319,8 @@ instance HTypeable a => HTypeable (Palette a) where
     toHType p = Defined "Palette" [toHType a] [Constr "Palette" [] []]
               where (Palette ((_,(_,Just a)):_)) = p
 instance XmlContent a => XmlContent (Palette a) where
-    toContents (Palette shapes) =
-        [ mkElemC "Palette" (concatMap toContents shapes) ]
+    toContents (Palette xs) =
+        [ mkElemC "Palette" (concatMap toContents xs) ]
     parseContents = do
         { inElement "Palette" $ fmap Palette (many1 parseContents) }
 
@@ -336,11 +336,11 @@ instance XmlContent a => XmlContent (Either String a) where
 
 -- Abbreviations
 makeTag :: String -> [Content i] -> Content i
-makeTag name children = CElem (Elem name [] children) undefined
+makeTag tagName children = CElem (Elem tagName [] children) undefined
 
 tagWithId :: String -> String -> [Content i] -> Content i
-tagWithId name identity children =
-    CElem (Elem name [("id", AttValue [Left identity])] children) undefined
+tagWithId tagName identity children =
+    CElem (Elem tagName [("id", AttValue [Left identity])] children) undefined
 
 -- | A simple string contains no spaces or unsafe characters
 simpleString :: String -> String -> Content i

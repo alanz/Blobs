@@ -31,7 +31,7 @@ import Text.Parse
 import Char (isSpace)
 
 import Graphics.UI.WX hiding (Selection)
-import Graphics.UI.WXCore
+--import Graphics.UI.WXCore
 
 changeNamePosition :: Bool -> State g n e -> IO ()
 changeNamePosition above state =
@@ -259,10 +259,10 @@ dropVia hasMoved edgeNr viaNr offset mousePoint state =
 
 selectMultiple :: Maybe (DoublePoint,DoublePoint) -> [Int] -> [(Int,Int)]
                   -> State g n e -> IO ()
-selectMultiple area nodeNrs viaNrs state =
+selectMultiple areaRect nodeNrs viaNrs state =
   do{ pDoc <- getDocument state
     ; PD.superficialUpdateDocument
-              (setSelection (MultipleSelection area nodeNrs viaNrs))
+              (setSelection (MultipleSelection areaRect nodeNrs viaNrs))
               pDoc
     ; repaintAll state
     }
@@ -278,9 +278,9 @@ dragMultiple :: [Int] -> [(Int,Int)] -> DoublePoint -> ScrolledWindow ()
 dragMultiple nodeNrs viaNrs mousePoint canvas state =
   do{ pDoc <- getDocument state
  -- ; doc <- PD.getDocument pDoc
-    ; Just (hasMoved, origin) <- getDragging state
-    ; let offset = mousePoint `subtractDoublePoint` origin
-    ; when (mousePoint /= origin) $
+    ; Just (hasMoved, originPoint) <- getDragging state
+    ; let offset = mousePoint `subtractDoublePoint` originPoint
+    ; when (mousePoint /= originPoint) $
       do{ -- The first time the point is moved we have to remember
           -- the document in the undo history
         ; (if not hasMoved then PD.updateDocument "move control point"
@@ -306,13 +306,13 @@ updateMultiple ns vs o network =
 
 dropMultiple :: Bool -> [Int] -> [(Int,Int)] -> DoublePoint -> DoublePoint
                 -> State g n e -> IO ()
-dropMultiple hasMoved nodeNrs viaNrs origin mousePoint state =
+dropMultiple hasMoved nodeNrs viaNrs originPoint mousePoint state =
   do{ when hasMoved $
       do{ pDoc <- getDocument state
         ; PD.superficialUpdateDocument
             (updateNetwork
                 (updateMultiple nodeNrs viaNrs
-                                (mousePoint`subtractDoublePoint`origin)))
+                                (mousePoint`subtractDoublePoint`originPoint)))
             pDoc
         }
     ; canvas <- getCanvas state
@@ -332,9 +332,9 @@ dragArea :: DoublePoint -> State g n e -> IO ()
 dragArea mousePoint state =
   do{ pDoc <- getDocument state
     ; doc  <- PD.getDocument pDoc
-    ; Just (_, origin) <- getDragging state
-    ; let (ns,vs) = itemsEnclosedWithin mousePoint origin (getNetwork doc)
-    ; selectMultiple (Just (origin,mousePoint)) ns vs state
+    ; Just (_, originPoint) <- getDragging state
+    ; let (ns,vs) = itemsEnclosedWithin mousePoint originPoint (getNetwork doc)
+    ; selectMultiple (Just (originPoint,mousePoint)) ns vs state
     }
   where
     itemsEnclosedWithin p0 p1 network =

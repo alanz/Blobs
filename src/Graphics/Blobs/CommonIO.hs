@@ -64,10 +64,10 @@ data TextCtrlSize = SingleLine | MultiLine
 
 myTextDialog :: Window a -> TextCtrlSize -> String -> String -> Bool
                 -> IO (Maybe String)
-myTextDialog parentWindow size dialogTitle initial selectAll =
+myTextDialog parentWindow lineSize dialogTitle initial selectAll =
   do{ d <- dialog parentWindow [text := dialogTitle]
-    ; textInput <- (case size of SingleLine -> textEntry;
-                                 MultiLine  -> textCtrl)
+    ; textInput <- (case lineSize of SingleLine -> textEntry;
+                                     MultiLine  -> textCtrl)
                          d [ alignment := AlignLeft, text := initial ]
     ; ok    <- button d [text := "Ok"]
     ; can   <- button d [text := "Cancel", identity := wxID_CANCEL]
@@ -77,17 +77,17 @@ myTextDialog parentWindow size dialogTitle initial selectAll =
                                   ]
         --  ,clientSize := case size of SingleLine -> sz 300 40
         --                              MultiLine ->  sz 500 200
-            ,area := case size of SingleLine -> rect (pt 50 50) (sz 300 80)
-                                  MultiLine ->  rect (pt 50 50) (sz 500 250)
+            ,area := case lineSize of SingleLine -> rect (pt 50 50) (sz 300 80)
+                                      MultiLine ->  rect (pt 50 50) (sz 500 250)
             ]
     ; when (selectAll)     $ do textCtrlSetSelection textInput 0 250
     ; when (not selectAll) $ do textCtrlSetInsertionPointEnd textInput
                                 set d [ visible := True ]
-    ; showModal d $ \stop ->
+    ; showModal d $ \stop1 ->
                 do set ok  [on command := safetyNet parentWindow $
                                           do theText <- get textInput text
-                                             stop (Just theText)]
-                   set can [on command := safetyNet parentWindow $ stop Nothing]
+                                             stop1 (Just theText)]
+                   set can [on command := safetyNet parentWindow $ stop1 Nothing]
     }
 
 -- Dialog for selecting a multiple Strings (0 or more)
@@ -129,12 +129,12 @@ multiSelectionDialog parentWindow dialogTitle strings initialSelection =
                                   ]
             , clientSize := sz 300 400
             ]
-    ; showModal d $ \stop ->
+    ; showModal d $ \stop1 ->
                 do set ok  [on command := safetyNet parentWindow $
                               do indices <- get theListBox selections
-                                 stop (Just (map (safeIndex "CommonIO.multiSelectionDialog" strings) indices))]
+                                 stop1 (Just (map (safeIndex "CommonIO.multiSelectionDialog" strings) indices))]
                    set can [on command := safetyNet parentWindow $
-                                          stop Nothing]
+                                          stop1 Nothing]
     }
 
 -- Dialog for selecting a single String
@@ -162,12 +162,12 @@ singleSelectionDialog parentWindow dialogTitle strings initialSelection =
                                   ]
             , clientSize := sz 300 400
             ]
-    ; showModal d $ \stop ->
+    ; showModal d $ \stop1 ->
                 do set ok  [on command := safetyNet parentWindow $
                                           do index <- get theListBox selection
-                                             stop (Just (safeIndex "CommonIO.singleSelectionDialog" strings index))]
+                                             stop1 (Just (safeIndex "CommonIO.singleSelectionDialog" strings index))]
                    set can [on command := safetyNet parentWindow $
-                                          stop Nothing]
+                                          stop1 Nothing]
     }
 
 -- | Fill a grid from a list of lists of texts. Each list inside the

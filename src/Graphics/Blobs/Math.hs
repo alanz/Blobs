@@ -35,7 +35,10 @@ instance Parse DoublePoint where
 
 data Vector = Vector !Double !Double
 
+doublePointX :: DoublePoint -> Double
 doublePointX (DoublePoint x _) = x
+
+doublePointY :: DoublePoint -> Double
 doublePointY (DoublePoint _ y) = y
 
 origin :: DoublePoint

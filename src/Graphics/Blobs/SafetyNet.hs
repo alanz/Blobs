@@ -2,7 +2,7 @@ module Graphics.Blobs.SafetyNet where
 
 import Graphics.UI.WX hiding (window)
 import Prelude hiding (catch)
-import Control.Exception (SomeException,Exception,catch)
+import Control.Exception (SomeException,catch)
 
 
 safetyNet :: Window a -> IO b -> IO ()

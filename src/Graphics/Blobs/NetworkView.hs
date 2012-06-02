@@ -11,13 +11,13 @@ import Graphics.Blobs.CommonIO
 import qualified Graphics.Blobs.Network as Network
 import Graphics.Blobs.Document
 import Graphics.Blobs.Colors
-import Graphics.Blobs.Common
+-- import Graphics.Blobs.Common
 import Graphics.Blobs.Palette
 
 import Graphics.Blobs.Math
 import Graphics.UI.WX as WX hiding (Vector)
 import Graphics.UI.WXCore hiding (Document, screenPPI, Colour)
-import Graphics.UI.WXCore.Draw
+-- import Graphics.UI.WXCore.Draw
 import Maybe
 import qualified Graphics.Blobs.Shape as Shape
 import Graphics.Blobs.DisplayOptions
@@ -142,10 +142,10 @@ reallyDrawCanvas doc ppi dc opt =
 
     drawLabel :: Double -> Bool -> String -> DoublePoint -> Justify
                  -> [Prop (DC ())] -> IO ()
-    drawLabel voffset boxed text (DoublePoint x y) justify opts =
+    drawLabel voffset isBoxed labelText (DoublePoint x y) justify opts =
       do{ -- draw background
-          when boxed $ do
-            { (textWidth, textHeight) <- logicalGetTextExtent ppi dc text
+          when isBoxed $ do
+            { (textWidth, textHeight) <- logicalGetTextExtent ppi dc labelText
             ; let horizontalMargin = 0.2 -- centimeters
                   verticalMargin = 0.01 -- centimeters
                   topleftY = y+voffset - case justify of
@@ -158,8 +158,8 @@ reallyDrawCanvas doc ppi dc opt =
                 (textWidth+2*horizontalMargin) (textHeight+2*verticalMargin)
                 (solidFill labelBackgroundColor)
             }
-        -- draw text
-        ; logicalText ppi dc (DoublePoint x (y+voffset)) text justify opts
+        -- draw labelText
+        ; logicalText ppi dc (DoublePoint x (y+voffset)) labelText justify opts
         }
 
     drawEdge :: InfoKind e g => Network.Edge e -> [Prop (DC ())] -> IO ()
@@ -185,7 +185,7 @@ reallyDrawCanvas doc ppi dc opt =
 
         fstEdgeVector = (head (via++[toPoint]))
                              `subtractDoublePointVector` fromPoint
-        fstTotalLen   = vectorLength fstEdgeVector
+        -- fstTotalLen   = vectorLength fstEdgeVector
         fstAngle      = vectorAngle fstEdgeVector
 
         penultimatePt = head (reverse (fromPoint:via))
@@ -206,8 +206,8 @@ reallyDrawCanvas doc ppi dc opt =
 
     drawVia :: Network.Edge e -> Network.ViaNr -> [Prop (DC ())] -> IO ()
     drawVia e n options =
-        let pt = (Network.getEdgeVia e)!!n in
-        do logicalCircle ppi dc pt kEDGE_CLICK_RANGE
+        let centrePoint = (Network.getEdgeVia e)!!n in
+        do logicalCircle ppi dc centrePoint kEDGE_CLICK_RANGE
                 (options ++ solidFill violet)
 
 solidFill :: Colour -> [Prop (DC ())]
@@ -245,7 +245,7 @@ edgeContains edge clickedPoint network =
         via= Network.getEdgeVia edge
         p  = clickedPoint
         numberedDistancesToSegments = zip [0..] $
-              zipWith (\p0 p1-> distanceSegmentPoint p0 p1 p)
+              zipWith (\pa pb-> distanceSegmentPoint pa pb p)
                       (p0:via) (via++[p1])
     in case [ nr | (nr,dist) <- numberedDistancesToSegments
                  , dist < kEDGE_CLICK_RANGE ] of
@@ -293,20 +293,20 @@ logicalText ppi dc (DoublePoint x y) txt (Justify horiz vert) options =
                                    MiddleJ -> (x, y-height/2)
                                    BottomJ -> (x, y-height)
     eachLine _ _ [] = return ()
-    eachLine maxwidth (x,y) (txt:txts) =
-      do{ (w,h) <- logicalGetTextExtent ppi dc txt
+    eachLine maxwidth (x,y) (txt1:txts) =
+      do{ (w,h) <- logicalGetTextExtent ppi dc txt1
         ; let thisX = case horiz of LeftJ   -> x-maxwidth/2
                                     CentreJ -> x-w/2
                                     RightJ  -> x+(maxwidth/2)-w
-        ; drawText dc txt (logicalToScreenPoint ppi (DoublePoint thisX y))
+        ; drawText dc txt1 (logicalToScreenPoint ppi (DoublePoint thisX y))
                    options
         ; eachLine maxwidth (x,y+h) txts
         }
 
 -- currently assumes only single line of text
-logicalTextRotated :: Size -> DC () -> DoublePoint -> String -> Double
+_logicalTextRotated :: Size -> DC () -> DoublePoint -> String -> Double
                       -> [Prop (DC ())] -> IO ()
-logicalTextRotated ppi dc pos txt angle options =
+_logicalTextRotated ppi dc pos txt angle options =
     draw dc txt (logicalToScreenPoint ppi pos) options
   where
     draw = if angle<1 && angle>(-1) then drawText

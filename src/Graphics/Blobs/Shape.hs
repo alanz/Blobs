@@ -10,7 +10,7 @@ module Graphics.Blobs.Shape
 import Graphics.Blobs.CommonIO
 import qualified Graphics.UI.WX as WX
 import Graphics.UI.WXCore hiding (Colour)
-import Graphics.UI.WXCore.Draw
+--import Graphics.UI.WXCore.Draw
 import Graphics.Blobs.Math
 import Text.Parse
 --import Text.XML.HaXml.XmlContent
@@ -135,23 +135,24 @@ instance XmlContent ShapeStyle where
 -}
 
 logicalDraw :: Size -> DC () -> DoublePoint -> Shape -> [WX.Prop (DC ())] -> IO ()
-logicalDraw ppi dc centre shape options =
+logicalDraw ppi dc centrePoint shape options =
     case shape of
-      Circle {}   -> WX.circle dc (logicalToScreenPoint ppi centre)
+      Circle {}   -> WX.circle dc (logicalToScreenPoint ppi centrePoint)
                                   (logicalToScreenX ppi (shapeRadius shape))
                                   (style2options (shapeStyle shape)++options)
       Polygon {}  -> WX.polygon dc (map (logicalToScreenPoint ppi
-                                             . translate centre)
+                                             . translate centrePoint)
                                           (shapePerimeter shape))
                                    (style2options (shapeStyle shape)++options)
-      Lines {}    -> logicalLineSegments ppi dc (map (translate centre)
+      Lines {}    -> logicalLineSegments ppi dc (map (translate centrePoint)
                                                      (shapePerimeter shape))
                                    (style2options (shapeStyle shape)++options)
-      Composite {}-> mapM_ (\s-> logicalDraw ppi dc centre s options)
+      Composite {}-> mapM_ (\s-> logicalDraw ppi dc centrePoint s options)
                            (shapeSegments shape)
 
 logicalLineSegments :: Size -> DC () -> [DoublePoint] -> [WX.Prop (DC ())] -> IO ()
 logicalLineSegments _   _  [_p]                  _options = return ()
+logicalLineSegments _   _  [  ]                  _options = return ()
 logicalLineSegments ppi dc (fromPoint:toPoint:ps) options =
   do{ WX.line dc (logicalToScreenPoint ppi fromPoint)
               (logicalToScreenPoint ppi toPoint) options

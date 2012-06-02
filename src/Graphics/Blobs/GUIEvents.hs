@@ -13,7 +13,7 @@ import Graphics.Blobs.InfoKind
 import Text.Parse
 
 import Graphics.UI.WX
-import Graphics.UI.WXCore
+--import Graphics.UI.WXCore
 
 mouseDown :: (InfoKind n g, InfoKind e g, Show g, Parse g, Descriptor g) =>
              Bool -> Point -> Frame () -> State g n e -> IO ()

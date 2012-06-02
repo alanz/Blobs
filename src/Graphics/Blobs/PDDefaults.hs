@@ -73,10 +73,10 @@ defaultSaveChangesDialog parentWindow theProgramName =
             ]
     -- ; set p [ defaultButton := saveB ]
     ; set d [ defaultButton := saveB ]
-    ; showModal d $ \stop ->
-                do set dontsaveB  [on command := stop (Just False) ]
-                   set saveB      [on command := stop (Just True) ]
-                   set cancelB    [on command := stop Nothing ]
+    ; showModal d $ \stop1 ->
+                do set dontsaveB  [on command := stop1 (Just False) ]
+                   set saveB      [on command := stop1 (Just True) ]
+                   set cancelB    [on command := stop1 Nothing ]
     }
 
 defaultSaveAsDialog :: Frame () -> Extensions -> Maybe String -> IO (Maybe String)

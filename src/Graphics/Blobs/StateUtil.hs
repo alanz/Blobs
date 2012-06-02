@@ -7,7 +7,7 @@ import Graphics.Blobs.State
 import Graphics.Blobs.Common
 import qualified Graphics.Blobs.PersistentDocument as PD
 
-import Maybe
+-- import Maybe
 import Graphics.UI.WX
 
 repaintAll :: State g n e -> IO ()

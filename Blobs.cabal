@@ -60,14 +60,14 @@ library
                  , Graphics.Blobs.StateUtil
                  -- , Graphics.Blobs.XTC
   -- other-modules:   Graphics.Blobs
-  ghc-options:     -Wall
+  ghc-options:     -Wall -fno-warn-unused-do-bind
 
 executable blobs
   main-is: Main.hs
   Build-Depends:   base >= 4 && < 5, haskell98, wx >= 0.9, wxcore >= 0.9, HaXml >= 1.14
                    , polyparse, directory, pretty, containers
   Hs-Source-Dirs:  src lib/DData
-  ghc-options:     -Wall
+  ghc-options:     -Wall -fno-warn-unused-do-bind
 
 source-repository head
   type:     git

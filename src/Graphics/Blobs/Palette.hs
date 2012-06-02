@@ -22,7 +22,7 @@ empty :: Palette a
 empty = Palette [("circle", (Shape.circle, Nothing))]
 
 instance Functor Palette where
-    fmap _ (Palette p) = Palette (map (\ (n,(s,i))-> (n,(s,Nothing))) p)
+    fmap _ (Palette p) = Palette (map (\ (n,(s,_i))-> (n,(s,Nothing))) p)
 
 
 instance Parse a => Parse (Palette a) where

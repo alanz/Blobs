@@ -152,7 +152,7 @@ node nodeNr theFrame state =
                         Left n  -> case lookup n (shapes palette) of
                                      Nothing -> const theInfo
                                      Just (_,Nothing) -> const theInfo
-                                     Just (_,Just i)  -> if i==theInfo then id
+                                     Just (_,Just info)  -> if info==theInfo then id
                                                          else const theInfo
                         Right _ -> const theInfo
     ; menuItem contextMenu
