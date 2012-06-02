@@ -1,3 +1,4 @@
+{-# LANGUAGE UndecidableInstances #-}
 module Graphics.Blobs.Network
     (
     -- * Types
@@ -53,6 +54,7 @@ module Graphics.Blobs.Network
     , setEdgeFrom, setEdgeTo, setEdgeVia, setEdgeInfo
     , getEdgeFromPort, getEdgeToPort
     , setEdgeFromPort, setEdgeToPort
+
     ) where
 
 import Graphics.Blobs.Common
@@ -62,6 +64,13 @@ import qualified Graphics.Blobs.Shape as Shape
 import qualified Graphics.Blobs.Palette as P
 
 import qualified Data.IntMap as IntMap -- hiding (map)
+
+import Text.XML.HaXml.Combinators (replaceAttrs)
+import Text.XML.HaXml.Types
+import Text.XML.HaXml.Verbatim
+import qualified Text.XML.HaXml.XmlContent.Haskell as XML
+import List(nub,isPrefixOf)
+import Monad(when)
 
 data Network g n e = Network
     { networkNodes      :: !(IntMap.IntMap (Node n)) -- ^ maps node numbers to nodes
@@ -122,12 +131,12 @@ mapNodeNetwork nodeFun network =
 
 constructEdge :: NodeNr -> PortNr -> NodeNr -> PortNr
                  -> [DoublePoint] -> e -> Edge e
-constructEdge fromNr fromPort toNr toPort via info =
+constructEdge fromNr fromPort toNr toPort via einfo =
     Edge
         { edgeFrom = fromNr
         , edgeTo   = toNr
         , edgeVia  = via
-        , edgeInfo = info
+        , edgeInfo = einfo
         , edgeFromPort = fromPort
         , edgeToPort   = toPort
         }
@@ -166,18 +175,18 @@ setEdgeVia :: [DoublePoint] -> Edge e -> Edge e
 setEdgeVia via edge = edge { edgeVia = via }
 
 setEdgeInfo :: e -> Edge oldInfo -> Edge e
-setEdgeInfo info edge = edge { edgeInfo = info }
+setEdgeInfo einfo edge = edge { edgeInfo = einfo }
 
 constructNode :: (InfoKind n g) =>
                  String -> DoublePoint -> Bool
                  -> Either String Shape.Shape -> n -> Maybe (PortNr,PortNr) -> Node n
-constructNode name position nameAbove shape info arity =
+constructNode name position nameAbove shape ninfo arity =
     Node
         { nodeName      = name
         , nodePosition  = position
         , nodeNameAbove = nameAbove
         , nodeShape     = shape
-        , nodeInfo      = info
+        , nodeInfo      = ninfo
         , nodeArity     = arity
         }
 
@@ -218,8 +227,8 @@ getNodeInfo :: Network g n e -> NodeNr -> n
 getNodeInfo network nodeNr = nodeInfo (networkNodes network IntMap.! nodeNr)
 
 setNodeInfo :: NodeNr -> n -> Network g n e -> Network g n e
-setNodeInfo nodeNr info network =
-    network { networkNodes = IntMap.insert nodeNr (node { nodeInfo = info }) (networkNodes network) }
+setNodeInfo nodeNr ninfo network =
+    network { networkNodes = IntMap.insert nodeNr (node { nodeInfo = ninfo }) (networkNodes network) }
   where node = networkNodes network IntMap.! nodeNr
 
 getNodeArity :: Network g n e -> NodeNr -> Maybe (PortNr,PortNr)
@@ -264,7 +273,7 @@ setPosition :: DoublePoint -> Node a -> Node a
 setPosition position node = node { nodePosition = position }
 
 setInfo :: a -> Node a -> Node a
-setInfo info node = node { nodeInfo = info }
+setInfo ninfo node = node { nodeInfo = ninfo }
 
 setArity :: Maybe (PortNr,PortNr) -> Node a -> Node a
 setArity arity node = node { nodeArity = arity }
@@ -430,13 +439,13 @@ addNodeEx :: InfoKind n g =>
              String -> DoublePoint -> Bool -> Either String Shape.Shape -> n
              -> Maybe (PortNr,PortNr)
              -> Network g n e -> (NodeNr, Network g n e)
-addNodeEx name position labelAbove shape info arity network =
+addNodeEx name position labelAbove shape ninfo arity network =
     ( nodeNr
     , network { networkNodes = IntMap.insert nodeNr node (networkNodes network) }
     )
   where
     nodeNr = getUnusedNodeNr network
-    node = constructNode name position labelAbove shape info arity
+    node = constructNode name position labelAbove shape ninfo arity
 
 
 -- | Add an edge to the network.
@@ -544,7 +553,7 @@ setCanvasSize :: (Double, Double) -> Network g n e -> Network g n e
 setCanvasSize canvasSize network = network { networkCanvasSize = canvasSize }
 
 setGlobalInfo :: g -> Network g n e -> Network g n e
-setGlobalInfo info network = network { networkInfo = info }
+setGlobalInfo ninfo network = network { networkInfo = ninfo }
 
 {-----------------------------------
   Local functions
@@ -577,3 +586,322 @@ updateVia edgeNr viaNr v network =
                   IntMap.adjust (\e-> e { edgeVia = take viaNr (edgeVia e)
                                              ++[v]++drop (viaNr+1) (edgeVia e) })
                          edgeNr (networkEdges network) }
+
+-- ---------------------------------------------------------------------
+-- Orphan instances moved from NetworkFile
+
+instance (XML.HTypeable g, XML.HTypeable n, XML.HTypeable e)
+         => XML.HTypeable (Network g n e) where
+    toHType _ = XML.Defined "Network" [] [XML.Constr "Network" [] []]
+ -- toHType g = Defined "Network" [] [Constr "Network" []
+ --			[ Tagged "Width" [String]
+ --			, Tagged "Height" [String]
+ --			, toHType (getGlobalInfo g)
+ --			, toHType (getPalette g)
+ --			, toHType (getNodeAssocs g)
+ --			, toHType (getEdgeAssocs g)
+ --			]]
+instance (InfoKind n g, InfoKind e g, XML.XmlContent g) =>
+         XML.XmlContent (Network g n e) where
+    toContents network =
+        [XML.CElem (XML.Elem "Network" []
+                   [ simpleString  "Width"     (show width)
+                   , simpleString  "Height"    (show height)
+                   , makeTag       "Info"      (XML.toContents netInfo)
+                   , makeTag       "Palette"   (XML.toContents (getPalette network))
+                   , makeTag       "Nodes"     (concatMap XML.toContents nodeAssocs)
+                   , makeTag       "Edges"     (concatMap XML.toContents edgeAssocs)
+                   ]) () ]
+      where
+        nodeAssocs = map (uncurry AssocN) $ getNodeAssocs network
+        edgeAssocs = map (uncurry AssocE) $ getEdgeAssocs network
+        (width, height) = getCanvasSize network
+        netInfo = getGlobalInfo network
+    parseContents = do
+        { XML.inElement "Network" $ do
+              { w  <- XML.inElement "Width"  $ fmap read XML.text
+              ; h  <- XML.inElement "Height" $ fmap read XML.text
+              ; i  <- XML.inElement "Info"   $ XML.parseContents
+              ; p  <- XML.inElement "Palette"$ XML.parseContents
+              ; ns <- XML.inElement "Nodes"  $ XML.many1 XML.parseContents
+              ; es <- XML.inElement "Edges"  $ XML.many1 XML.parseContents
+              ; networkValid ns es
+              ; return ( setCanvasSize (w,h)
+                       . setPalette p
+                       . setNodeAssocs (map deAssocN ns)
+                       . setEdgeAssocs (map deAssocE es)
+                       $ empty i undefined undefined)
+              }
+        }
+
+
+peekAttributes :: String -> XML.XMLParser [(String,AttValue)]
+peekAttributes t =
+    do{ (p, e@(Elem _ as _)) <- XML.posnElement [t]
+      ; XML.reparse [CElem e p]
+      ; return as
+      }
+
+instance XML.HTypeable (AssocN n) where
+    toHType _ = XML.Defined "Node" [] [XML.Constr "Node" [] []]
+instance (InfoKind n g) => XML.XmlContent (AssocN n) where
+    toContents (AssocN n node) =
+        concatMap (replaceAttrs [("id",'N':show n)]) (XML.toContents node)
+    parseContents = do
+        { [("id",n)] <- peekAttributes "Node"
+        ; n' <- num n
+        ; node <- XML.parseContents
+        ; return (AssocN n' node)
+        }
+      where num (AttValue [Left ('N':n)]) = return (read n)
+            num (AttValue s) = fail ("Problem reading Node ID: "++verbatim s)
+
+instance XML.HTypeable (AssocE e) where
+    toHType _ = XML.Defined "Edge" [] [XML.Constr "Edge" [] []]
+instance (InfoKind e g) => XML.XmlContent (AssocE e) where
+    toContents (AssocE n edge) =
+        concatMap (replaceAttrs [("id",'E':show n)]) (XML.toContents edge)
+    parseContents = do
+        { [("id",n)] <- peekAttributes "Edge"
+        ; n' <- num n
+        ; edge <- XML.parseContents
+        ; return (AssocE n' edge)
+        }
+      where num (AttValue [Left ('E':n)]) = return (read n)
+            num (AttValue s) = fail ("Problem reading Edge ID: "++verbatim s)
+
+instance XML.HTypeable (Node n) where
+    toHType _ = XML.Defined "Node" [] [XML.Constr "Node" [] []]
+instance (InfoKind n g) => XML.XmlContent (Node n) where
+    toContents node =
+        [ makeTag "Node"
+            (XML.toContents (getPosition node) ++
+            [ escapeString "Name"       (getName node)
+            , simpleString "LabelAbove" (show (getNameAbove node))
+            , makeTag      "Shape"      (XML.toContents (getShape node))
+            , makeTag      "Info"       (XML.toContents (getInfo node))
+            , makeTag      "Arity"      (XML.toContents (getArity node))
+            ])
+        ]
+    parseContents = do
+        { XML.inElement "Node" $ do
+              { p <- XML.parseContents	-- position
+              ; n <- XML.inElement "Name" $ XML.text
+              ; a <- XML.inElement "LabelAbove" $ fmap read XML.text
+              ; s <- XML.inElement "Shape" $ XML.parseContents
+              ; i <- XML.inElement "Info" $ XML.parseContents
+              ; r <- (XML.inElement "Arity" $ XML.parseContents)
+                       `XML.onFail` (return Nothing)
+              ; return (constructNode n p a s i r)
+              }
+        }
+{-
+instance XML.HTypeable DoublePoint where
+    toHType _ = XML.Defined "DoublePoint" [] [XML.Constr "X" [] [], XML.Constr "Y" [] []]
+instance XML.XmlContent DoublePoint where
+    toContents (DoublePoint x y) =
+        [ simpleString "X"          (show x)
+        , simpleString "Y"          (show y)
+        ]
+    parseContents = do
+        { x <- XML.inElement "X" $ fmap read XML.text
+        ; y <- XML.inElement "Y" $ fmap read XML.text
+        ; return (DoublePoint x y)
+        }
+-}
+instance XML.HTypeable (Edge e) where
+    toHType _ = XML.Defined "Edge" [] [XML.Constr "Edge" [] []]
+instance InfoKind e g => XML.XmlContent (Edge e) where
+    toContents edge =
+        [ makeTag "Edge"
+            [ simpleString  "From"      (show (getEdgeFrom edge))
+            , simpleString  "To"        (show (getEdgeTo edge))
+            , makeTag       "Via"       (concatMap XML.toContents (getEdgeVia edge))
+            , makeTag       "Info"      (XML.toContents (getEdgeInfo edge))
+            , makeTag       "FromPort"  (XML.toContents (getEdgeFromPort edge))
+            , makeTag       "ToPort"    (XML.toContents (getEdgeToPort edge))
+            ]
+        ]
+    parseContents = do
+        { XML.inElement "Edge" $ do
+              { f <- XML.inElement "From" $ fmap read XML.text
+              ; t <- XML.inElement "To" $ fmap read XML.text
+              ; v <- XML.inElement "Via" $ XML.many XML.parseContents
+              ; i <- XML.inElement "Info" $ XML.parseContents
+              ; fp <- (XML.inElement "FromPort" $ XML.parseContents)
+                          `XML.onFail` (return 0)
+              ; tp <- (XML.inElement "ToPort" $ XML.parseContents)
+                          `XML.onFail` (return 0)
+              ; return (constructEdge f fp t tp v i)
+              }
+        }
+
+{- derived by DrIFT -}
+instance XML.HTypeable Colour where
+    toHType v = XML.Defined "Colour" []
+                   [XML.Constr "RGB" [] [XML.toHType aa,XML.toHType ab,XML.toHType ac]]
+      where (RGB aa ab ac) = v
+instance XML.XmlContent Colour where
+    parseContents = do
+        { XML.inElement "RGB" $ do
+              { aa <- XML.parseContents
+              ; ab <- XML.parseContents
+              ; ac <- XML.parseContents
+              ; return (RGB aa ab ac)
+              }
+        }
+    toContents v@(RGB aa ab ac) =
+        [XML.mkElemC (XML.showConstr 0 (XML.toHType v))
+                 (concat [XML.toContents aa, XML.toContents ab, XML.toContents ac])]
+
+{- derived by DrIFT -}
+instance XML.HTypeable Shape.Shape where
+    toHType v = XML.Defined "Shape" []
+                    [XML.Constr "Circle" [] [XML.toHType aa,XML.toHType ab]
+                    ,XML.Constr "Polygon" [] [XML.toHType ac,XML.toHType ad]
+                    ,XML.Constr "Lines" [] [XML.toHType ae,XML.toHType af]
+                    ,XML.Constr "Composite" [] [XML.toHType ag]]
+      where
+        (Shape.Circle aa ab) = v
+        (Shape.Polygon ac ad) = v
+        (Shape.Lines ae af) = v
+        (Shape.Composite ag) = v
+instance XML.XmlContent Shape.Shape where
+    parseContents = do
+        { e@(Elem t _ _) <- XML.element  ["Circle","Polygon","Lines","Composite"]
+        ; case t of
+          _ | "Polygon" `isPrefixOf` t -> XML.interior e $
+                do { ac <- XML.parseContents
+                   ; ad <- XML.parseContents
+                   ; return (Shape.Polygon ac ad)
+                   }
+            | "Lines" `isPrefixOf` t -> XML.interior e $
+                do { ae <- XML.parseContents
+                   ; af <- XML.parseContents
+                   ; return (Shape.Lines ae af)
+                   }
+            | "Composite" `isPrefixOf` t -> XML.interior e $
+                fmap Shape.Composite XML.parseContents
+            | "Circle" `isPrefixOf` t -> XML.interior e $
+                do { aa <- XML.parseContents
+                   ; ab <- XML.parseContents
+                   ; return (Shape.Circle aa ab)
+                   }
+        }
+    toContents v@(Shape.Circle aa ab) =
+        [XML.mkElemC (XML.showConstr 0 (XML.toHType v)) (concat [XML.toContents aa,
+                                                     XML.toContents ab])]
+    toContents v@(Shape.Polygon ac ad) =
+        [XML.mkElemC (XML.showConstr 1 (XML.toHType v)) (concat [XML.toContents ac,
+                                                     XML.toContents ad])]
+    toContents v@(Shape.Lines ae af) =
+        [XML.mkElemC (XML.showConstr 2 (XML.toHType v)) (concat [XML.toContents ae,
+                                                     XML.toContents af])]
+    toContents v@(Shape.Composite ag) =
+        [XML.mkElemC (XML.showConstr 3 (XML.toHType v)) (XML.toContents ag)]
+
+{- derived by DrIFT -}
+instance XML.HTypeable Shape.ShapeStyle where
+    toHType v = XML.Defined "ShapeStyle" []
+                    [XML.Constr "ShapeStyle" [] [XML.toHType aa,XML.toHType ab,XML.toHType ac]]
+      where (Shape.ShapeStyle aa ab ac) = v
+instance XML.XmlContent Shape.ShapeStyle where
+    parseContents = do
+        { XML.inElement  "ShapeStyle" $ do
+              { aa <- XML.parseContents
+              ; ab <- XML.parseContents
+              ; ac <- XML.parseContents
+              ; return (Shape.ShapeStyle aa ab ac)
+              }
+        }
+    toContents v@(Shape.ShapeStyle aa ab ac) =
+        [XML.mkElemC (XML.showConstr 0 (XML.toHType v))
+                 (concat [XML.toContents aa, XML.toContents ab, XML.toContents ac])]
+
+{- handwritten -}
+instance XML.HTypeable a => XML.HTypeable (P.Palette a) where
+    toHType p = XML.Defined "Palette" [XML.toHType a] [XML.Constr "Palette" [] []]
+              where (P.Palette ((_,(_,Just a)):_)) = p
+instance XML.XmlContent a => XML.XmlContent (P.Palette a) where
+    toContents (P.Palette xs) =
+        [ XML.mkElemC "Palette" (concatMap XML.toContents xs) ]
+    parseContents = do
+        { XML.inElement "Palette" $ fmap P.Palette (XML.many1 XML.parseContents) }
+
+---------------------------------------------------------
+-- Internal type isomorphic to (index,value) pairs
+-- (but permits instances of classes)
+---------------------------------------------------------
+data AssocN n = AssocN Int (Node n)
+deAssocN :: AssocN n -> (Int,Node n)
+deAssocN (AssocN n v) = (n,v)
+data AssocE e = AssocE Int (Edge e)
+deAssocE :: AssocE e -> (Int,Edge e)
+deAssocE (AssocE n v) = (n,v)
+
+---------------------------------------------------------
+-- Check whether the network read from file is valid
+---------------------------------------------------------
+
+networkValid :: [AssocN n] -> [AssocE e] -> XML.XMLParser ()
+networkValid nodeAssocs edgeAssocs
+    | containsDuplicates nodeNrs =
+        fail "Node numbers should be unique"
+    | containsDuplicates edgeNrs =
+        fail "Edge numbers should be unique"
+    | otherwise =
+          do{ mapM_ (checkEdge nodeNrs) edgeAssocs
+            ; -- determine whether there are multiple edges between any two nodes
+            ; let multipleEdges = duplicatesBy betweenSameNodes edges
+            ; when (not (null multipleEdges)) $
+                fail $ "There are multiple edges between the following node pairs: " ++
+                    commasAnd [ "(" ++ show (getEdgeFrom e) ++ ", "
+                                    ++ show (getEdgeTo e) ++ ")"
+                              | e <- multipleEdges
+                              ]
+            ; return ()
+            }
+  where
+    nodeNrs = map (fst . deAssocN) nodeAssocs
+    (edgeNrs, edges) = unzip (map deAssocE edgeAssocs)
+
+-- Check whether edges refer to existing node numbers and whether
+-- there are no edges that start and end in the same node
+checkEdge :: [NodeNr] -> AssocE e -> XML.XMLParser ()
+checkEdge nodeNrs (AssocE edgeNr edge)
+    | fromNr == toNr =
+        fail $ "Edge " ++ show edgeNr ++ ": from-node and to-node are the same"
+    | fromNr `notElem` nodeNrs = nonExistingNode fromNr
+    | toNr   `notElem` nodeNrs = nonExistingNode toNr
+    | otherwise                = return ()
+  where
+    fromNr = getEdgeFrom edge
+    toNr   = getEdgeTo   edge
+    nonExistingNode nodeNr =
+        fail $ "Edge " ++ show edgeNr ++ ": refers to non-existing node "
+               ++ show nodeNr
+
+containsDuplicates :: Eq a => [a] -> Bool
+containsDuplicates xs = length (nub xs) /= length xs
+
+-- Partial equality on edges
+betweenSameNodes :: Edge e -> Edge e -> Bool
+betweenSameNodes e1 e2 =
+    (getEdgeFrom e1 == getEdgeFrom e2  &&  getEdgeTo e1 == getEdgeTo e2)
+    ||
+    (getEdgeFrom e1 == getEdgeTo e2    &&  getEdgeTo e1 == getEdgeFrom e1)
+
+-- Returns elements that appear more than once in a list
+duplicates :: Eq a => [a] -> [a]
+duplicates [] = []
+duplicates (x:xs)
+    | x `elem` xs = x : duplicates (filter (/= x) xs)
+    | otherwise   = duplicates xs
+
+-- Returns elements that appear more than once in a list, using given Eq op
+duplicatesBy :: (a->a->Bool) -> [a] -> [a]
+duplicatesBy _  [] = []
+duplicatesBy eq (x:xs)
+    | any (eq x) xs = x : duplicatesBy eq (filter (not . eq x) xs)
+    | otherwise     = duplicatesBy eq xs
+

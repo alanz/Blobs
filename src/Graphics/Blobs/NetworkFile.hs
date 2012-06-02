@@ -2,28 +2,26 @@
 module Graphics.Blobs.NetworkFile where
 
 import qualified Graphics.Blobs.Network as N
-import Graphics.Blobs.Math
-import Graphics.Blobs.Common
+--import Graphics.Blobs.Math
+--import Graphics.Blobs.Common
 --import Graphics.Blobs.Colors
-import Graphics.Blobs.Shape
+--import Graphics.Blobs.Shape
 import Graphics.Blobs.InfoKind
-import Graphics.Blobs.Palette
+--import Graphics.Blobs.Palette
 
 import Text.XML.HaXml.Types
-import Text.XML.HaXml.Escape
+--import Text.XML.HaXml.Escape
 import Text.XML.HaXml.Posn (noPos)
 import Text.XML.HaXml.Parse hiding (element)
--- import Text.XML.HaXml.XmlContent as XML
 import Text.XML.HaXml.XmlContent.Haskell as XML
-import Text.XML.HaXml.Combinators (replaceAttrs)
-import Text.XML.HaXml.Verbatim
---import Text.XML.HaXml.TypeMapping (toDTD,toHType)
+--import Text.XML.HaXml.Combinators (replaceAttrs)
+--import Text.XML.HaXml.Verbatim
 import Text.PrettyPrint.HughesPJ
 import qualified Text.XML.HaXml.Pretty as Pretty
-import Char
+--import Char
 --import Maybe
-import Monad(when)
-import List(nub,isPrefixOf)
+--import Monad(when)
+--import List(nub,isPrefixOf)
 
 -- | Print the network data structure to an XML text
 toString :: (InfoKind n g, InfoKind e g, XmlContent g) =>
@@ -72,7 +70,7 @@ fromStringShow txt =
                      )
         _ -> Left "File is not a Blobs network"
 -}
-
+{-
 ---------------------------------------------------------
 -- Internal type isomorphic to (index,value) pairs
 -- (but permits instances of classes)
@@ -83,10 +81,11 @@ deAssocN (AssocN n v) = (n,v)
 data AssocE e = AssocE Int (N.Edge e)
 deAssocE :: AssocE e -> (Int,N.Edge e)
 deAssocE (AssocE n v) = (n,v)
-
+-}
 ---------------------------------------------------------
 -- Convert our data type to/from an XML tree
 ---------------------------------------------------------
+{-
 instance (HTypeable g, HTypeable n, HTypeable e)
          => HTypeable (N.Network g n e) where
     toHType _ = Defined "Network" [] [Constr "Network" [] []]
@@ -98,6 +97,8 @@ instance (HTypeable g, HTypeable n, HTypeable e)
  --			, toHType (getNodeAssocs g)
  --			, toHType (getEdgeAssocs g)
  --			]]
+-}
+{-
 instance (InfoKind n g, InfoKind e g, XmlContent g) =>
          XmlContent (N.Network g n e) where
     toContents network =
@@ -130,7 +131,8 @@ instance (InfoKind n g, InfoKind e g, XmlContent g) =>
                        $ N.empty i undefined undefined)
               }
         }
-
+-}
+{-
 peekAttributes :: String -> XMLParser [(String,AttValue)]
 peekAttributes t =
     do{ (p, e@(Elem _ as _)) <- posnElement [t]
@@ -323,7 +325,7 @@ instance XmlContent a => XmlContent (Palette a) where
         [ mkElemC "Palette" (concatMap toContents xs) ]
     parseContents = do
         { inElement "Palette" $ fmap Palette (many1 parseContents) }
-
+-}
 {-
 instance XmlContent a => XmlContent (Either String a) where
   toContents (Left str)    = [ simpleString "ShapeName" (show str) ]
@@ -333,7 +335,7 @@ instance XmlContent a => XmlContent (Either String a) where
     return () -- Need to implement this
 -}
 ---- UTILITY FUNCTIONS
-
+{-
 -- Abbreviations
 makeTag :: String -> [Content i] -> Content i
 makeTag tagName children = CElem (Elem tagName [] children) undefined
@@ -346,7 +348,8 @@ tagWithId tagName identity children =
 simpleString :: String -> String -> Content i
 simpleString tag value =
     CElem (Elem tag [] [ CString False value undefined ]) undefined
-
+-}
+{-
 -- | The string value may contain spaces and unsafe characters
 escapeString :: String -> String -> Content i
 escapeString key value =
@@ -369,7 +372,8 @@ commentEscape :: String -> String
 commentEscape [] = []
 commentEscape ('-':'-':'>':xs) = "==>" ++ commentEscape xs
 commentEscape (x:xs) = x : commentEscape xs
-
+-}
+{-
 ---------------------------------------------------------
 -- Check whether the network read from file is valid
 ---------------------------------------------------------
@@ -436,3 +440,4 @@ duplicatesBy eq (x:xs)
     | any (eq x) xs = x : duplicatesBy eq (filter (not . eq x) xs)
     | otherwise     = duplicatesBy eq xs
 
+-}

@@ -293,14 +293,14 @@ logicalText ppi dc (DoublePoint x y) txt (Justify horiz vert) options =
                                    MiddleJ -> (x, y-height/2)
                                    BottomJ -> (x, y-height)
     eachLine _ _ [] = return ()
-    eachLine maxwidth (x,y) (txt1:txts) =
+    eachLine maxwidth (x1,y1) (txt1:txts) =
       do{ (w,h) <- logicalGetTextExtent ppi dc txt1
-        ; let thisX = case horiz of LeftJ   -> x-maxwidth/2
-                                    CentreJ -> x-w/2
-                                    RightJ  -> x+(maxwidth/2)-w
-        ; drawText dc txt1 (logicalToScreenPoint ppi (DoublePoint thisX y))
+        ; let thisX = case horiz of LeftJ   -> x1-maxwidth/2
+                                    CentreJ -> x1-w/2
+                                    RightJ  -> x1+(maxwidth/2)-w
+        ; drawText dc txt1 (logicalToScreenPoint ppi (DoublePoint thisX y1))
                    options
-        ; eachLine maxwidth (x,y+h) txts
+        ; eachLine maxwidth (x1,y1+h) txts
         }
 
 -- currently assumes only single line of text

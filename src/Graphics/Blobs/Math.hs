@@ -13,18 +13,26 @@ module Graphics.Blobs.Math
     , origin
     , translate
     , enclosedInRectangle
+
+    -- For XML I/O
+    , makeTag
+    , tagWithId
+    , simpleString
+    , escapeString
+    , comment
+    , commentEscape
     ) where
 
 import Graphics.UI.WX(Point, point, pointX, pointY)
 import Text.Parse
 
-{-
-data DoublePoint = DoublePoint
-    { doublePointX :: !Double
-    , doublePointY :: !Double
-    }
-    deriving (Show, Eq, Read)
--}
+import qualified Text.XML.HaXml.XmlContent.Haskell as XML
+import Char
+import Text.XML.HaXml.Escape
+import Text.XML.HaXml.Types
+
+-- ---------------------------------------------------------------------
+
 data DoublePoint = DoublePoint !Double !Double
     deriving (Show, Eq, Read)
 
@@ -111,3 +119,58 @@ enclosedInRectangle (DoublePoint x y) (DoublePoint x0 y0) (DoublePoint x1 y1) =
   where
     between i j k | j <= k    =  j <= i && i <= k
                   | otherwise =  k <= i && i <= j
+
+-- ---------------------------------------------------------------------
+-- Moving orphan instances home
+instance XML.HTypeable DoublePoint where
+    toHType _ = XML.Defined "DoublePoint" [] [XML.Constr "X" [] [], XML.Constr "Y" [] []]
+instance XML.XmlContent DoublePoint where
+    toContents (DoublePoint x y) =
+        [ simpleString "X"          (show x)
+        , simpleString "Y"          (show y)
+        ]
+    parseContents = do
+        { x <- XML.inElement "X" $ fmap read XML.text
+        ; y <- XML.inElement "Y" $ fmap read XML.text
+        ; return (DoublePoint x y)
+        }
+
+
+---- UTILITY FUNCTIONS
+
+-- Abbreviations
+makeTag :: String -> [XML.Content i] -> XML.Content i
+makeTag tagName children = XML.CElem (XML.Elem tagName [] children) undefined
+
+tagWithId :: String -> String -> [XML.Content i] -> XML.Content i
+tagWithId tagName identity children =
+    XML.CElem (XML.Elem tagName [("id", XML.AttValue [Left identity])] children) undefined
+
+-- | A simple string contains no spaces or unsafe characters
+simpleString :: String -> String -> XML.Content i
+simpleString tag value =
+    XML.CElem (XML.Elem tag [] [ XML.CString False value undefined ]) undefined
+
+-- | The string value may contain spaces and unsafe characters
+escapeString :: String -> String -> XML.Content i
+escapeString key value =
+    XML.CElem ((if isSafe value then id else escape) $
+             XML.Elem key [] [ XML.CString (any isSpace value) value undefined ])
+          undefined
+  where
+    isSafe cs = all isSafeChar cs
+    isSafeChar c = isAlpha c || isDigit c || c `elem` "- ."
+
+    escape :: XML.Element i -> XML.Element i
+    escape = xmlEscape stdXmlEscaper
+
+comment :: String -> XML.Content i
+comment s = XML.CMisc (Comment (commentEscape s)) undefined
+
+-- Replace occurences of "-->" with "==>" in a string so that the string
+-- becomes safe for an XML comment
+commentEscape :: String -> String
+commentEscape [] = []
+commentEscape ('-':'-':'>':xs) = "==>" ++ commentEscape xs
+commentEscape (x:xs) = x : commentEscape xs
+
