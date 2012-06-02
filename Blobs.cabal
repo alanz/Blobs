@@ -1,16 +1,39 @@
 Name:            Blobs
 Version:         0.1
 License:         LGPL
+License-file:    LICENCE-LGPL
 Author:          Arjan van IJzendoorn, Martijn Schrage, Malcolm Wallace
-Description:     Diagram editor
+maintainer:      Alan Zimmerman <alan.zimm@gmail.com>
+Synopsis:        Diagram editor
+Description:
+   Blobs is a diagram editor for directed graphs. It is written in
+   Haskell, using the platform-independent GUI toolkit wxHaskell. It
+   is a community project at a fairly early stage of development - you
+   are encouraged to get involved and improve it!
+   .
+   Blobs is a front-end for drawing and editing graph diagrams. You
+   must add your own back-end engine if you want it to do some
+   analysis or processing of the graph.
+Category:        Graphics
+Stability:       unstable
+cabal-version:   >= 1.9.2
+build-type:      Simple
 Homepage:        http://www.cs.york.ac.uk/fp/darcs/Blobs/
-Build-Depends:   base, haskell98, wx >= 0.9, wxcore >= 0.9, HaXml >= 1.14
-                 , polyparse, directory, pretty, containers
-                 -- , lang
+bug-reports:     http://github.com/alanz/Blobs/issues
 
-executable: blobs
-main-is: Main.hs
-Hs-Source-Dirs:  src lib/DData
-Ghc-Options:     -O2
-Extensions:      ForeignFunctionInterface, MultiParamTypeClasses
+Extra-source-files:
+  Blobs.icns, blobs.png, dazzle.jpg, index.html, patch.icons,
+  README.md, simple.blobpalette, wiring.blobs,
+  ./src/*.hs
+  ./lib/DData/*.hs
 
+executable blobs
+  main-is: Main.hs
+  Build-Depends:   base, haskell98, wx >= 0.9, wxcore >= 0.9, HaXml >= 1.14
+                   , polyparse, directory, pretty, containers
+  Hs-Source-Dirs:  src lib/DData
+  Ghc-Options:     -O2
+
+source-repository head
+  type:     git
+  location: git://github.com/alanz/Blobs.git
