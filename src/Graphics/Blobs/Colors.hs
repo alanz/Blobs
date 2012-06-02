@@ -1,4 +1,4 @@
-module Colors where
+module Graphics.Blobs.Colors where
 
 import Graphics.UI.WX
 import Text.Parse

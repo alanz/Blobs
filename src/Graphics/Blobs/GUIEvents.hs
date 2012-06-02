@@ -1,15 +1,15 @@
-module GUIEvents where
+module Graphics.Blobs.GUIEvents where
 
 import List (nub,(\\))
-import NetworkView(clickedNode, clickedEdge, clickedVia)
-import NetworkControl
-import State
-import Common
-import CommonIO
-import Document
-import qualified ContextMenu
-import qualified PersistentDocument as PD
-import InfoKind
+import Graphics.Blobs.NetworkView(clickedNode, clickedEdge, clickedVia)
+import Graphics.Blobs.NetworkControl
+import Graphics.Blobs.State
+import Graphics.Blobs.Common
+import Graphics.Blobs.CommonIO
+import Graphics.Blobs.Document
+import qualified Graphics.Blobs.ContextMenu as ContextMenu
+import qualified Graphics.Blobs.PersistentDocument as PD
+import Graphics.Blobs.InfoKind
 import Text.Parse
 
 import Graphics.UI.WX

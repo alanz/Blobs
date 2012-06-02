@@ -1,16 +1,16 @@
-module ContextMenu
+module Graphics.Blobs.ContextMenu
     ( canvas, edge, node, via ) where
 
-import State
-import Network
-import Document
-import NetworkControl
-import SafetyNet
-import CommonIO
-import Math (DoublePoint)
-import qualified PersistentDocument as PD
-import Palette
-import InfoKind
+import Graphics.Blobs.State
+import Graphics.Blobs.Network
+import Graphics.Blobs.Document
+import Graphics.Blobs.NetworkControl
+import Graphics.Blobs.SafetyNet
+import Graphics.Blobs.CommonIO
+import Graphics.Blobs.Math (DoublePoint)
+import qualified Graphics.Blobs.PersistentDocument as PD
+import Graphics.Blobs.Palette
+import Graphics.Blobs.InfoKind
 import Text.Parse
 
 import Graphics.UI.WX

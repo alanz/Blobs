@@ -1,4 +1,4 @@
-module NetworkControl
+module Graphics.Blobs.NetworkControl
     ( createNode, selectNode
     , createEdge, selectEdge
     , createVia,  selectVia
@@ -15,18 +15,18 @@ module NetworkControl
     , changeGlobalInfo
     ) where
 
-import State
-import StateUtil
-import Network
-import NetworkView (edgeContains)
-import Document
-import Common
-import CommonIO
-import Math
-import Shape
-import qualified PersistentDocument as PD
-import InfoKind
-import Palette (shapes)
+import Graphics.Blobs.State
+import Graphics.Blobs.StateUtil
+import Graphics.Blobs.Network
+import Graphics.Blobs.NetworkView (edgeContains)
+import Graphics.Blobs.Document
+import Graphics.Blobs.Common
+import Graphics.Blobs.CommonIO
+import Graphics.Blobs.Math
+import qualified Graphics.Blobs.Shape as Shape
+import qualified Graphics.Blobs.PersistentDocument as PD
+import Graphics.Blobs.InfoKind
+import Graphics.Blobs.Palette (shapes)
 import Text.Parse
 import Char (isSpace)
 

@@ -1,8 +1,8 @@
-module CommonIO where
+module Graphics.Blobs.CommonIO where
 
-import Math
-import Common(ifJust, internalError, tabDelimited, safeIndex, systemGrey)
-import SafetyNet
+import Graphics.Blobs.Math
+import Graphics.Blobs.Common(ifJust, internalError, tabDelimited, safeIndex, systemGrey)
+import Graphics.Blobs.SafetyNet
 
 import Graphics.UI.WX
 import Graphics.UI.WXCore

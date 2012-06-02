@@ -1,6 +1,6 @@
-module State
+module Graphics.Blobs.State
     ( State
-    , State.empty
+    , Graphics.Blobs.State.empty
     , ToolWindow(..)
 
     , getDocument
@@ -12,10 +12,10 @@ module State
     , changeDisplayOptions
     ) where
 
-import Document
-import Math
-import qualified PersistentDocument as PD
-import DisplayOptions
+import Graphics.Blobs.Document
+import Graphics.Blobs.Math
+import qualified Graphics.Blobs.PersistentDocument as PD
+import qualified Graphics.Blobs.DisplayOptions as DisplayOptions
 
 import Graphics.UI.WX
 import Graphics.UI.WXCore hiding (Document, ToolWindow)
@@ -28,7 +28,7 @@ data StateRecord g n e = St
     , stNetworkFrame    :: Frame ()
     , stCanvas          :: ScrolledWindow ()
     , stPageSetupDialog :: PageSetupDialog ()
-    , stDisplayOptions  :: DisplayOptions
+    , stDisplayOptions  :: DisplayOptions.DisplayOptions
     }
 
 data ToolWindow = TW
@@ -67,7 +67,7 @@ getCanvas = getFromState stCanvas
 getPageSetupDialog :: State g n e -> IO (PageSetupDialog ())
 getPageSetupDialog = getFromState stPageSetupDialog
 
-getDisplayOptions :: State g n e -> IO DisplayOptions
+getDisplayOptions :: State g n e -> IO DisplayOptions.DisplayOptions
 getDisplayOptions = getFromState stDisplayOptions
 
 -- Setters
@@ -88,11 +88,11 @@ setPageSetupDialog :: PageSetupDialog () -> State g n e -> IO ()
 setPageSetupDialog thePageSetupDialog stateRef =
     varUpdate_ stateRef (\state -> state { stPageSetupDialog = thePageSetupDialog })
 
-setDisplayOptions :: DisplayOptions -> State g n e -> IO ()
+setDisplayOptions :: DisplayOptions.DisplayOptions -> State g n e -> IO ()
 setDisplayOptions dp stateRef =
     varUpdate_ stateRef (\state -> state { stDisplayOptions = dp })
 
-changeDisplayOptions :: (DisplayOptions->DisplayOptions) -> State g n e -> IO ()
+changeDisplayOptions :: (DisplayOptions.DisplayOptions->DisplayOptions.DisplayOptions) -> State g n e -> IO ()
 changeDisplayOptions dpf stateRef =
     varUpdate_ stateRef
         (\state -> state { stDisplayOptions = dpf (stDisplayOptions state) })

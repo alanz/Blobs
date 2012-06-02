@@ -1,4 +1,4 @@
-module NetworkView
+module Graphics.Blobs.NetworkView
     ( drawCanvas
     , clickedNode
     , clickedEdge
@@ -6,22 +6,22 @@ module NetworkView
     , edgeContains
     ) where
 
-import Constants
-import CommonIO
-import Network
-import Document
-import Colors
-import Common
-import Palette
+import Graphics.Blobs.Constants
+import Graphics.Blobs.CommonIO
+import qualified Graphics.Blobs.Network as Network
+import Graphics.Blobs.Document
+import Graphics.Blobs.Colors
+import Graphics.Blobs.Common
+import Graphics.Blobs.Palette
 
-import Math
+import Graphics.Blobs.Math
 import Graphics.UI.WX as WX hiding (Vector)
 import Graphics.UI.WXCore hiding (Document, screenPPI, Colour)
 import Graphics.UI.WXCore.Draw
 import Maybe
-import Shape
-import DisplayOptions
-import InfoKind
+import qualified Graphics.Blobs.Shape as Shape
+import Graphics.Blobs.DisplayOptions
+import Graphics.Blobs.InfoKind
 
 import Prelude hiding (catch)
 import Control.Exception
@@ -71,19 +71,19 @@ reallyDrawCanvas doc ppi dc opt =
                      (DoublePoint (width/2) 1) (Justify CentreJ TopJ)
                      [ textColor := wxcolor kNodeLabelColour ]
     -- draw edges, highlight the selected ones (if any)
-    ; mapM_ (\edge -> drawEdge edge []) (getEdges network)
+    ; mapM_ (\edge -> drawEdge edge []) (Network.getEdges network)
     ; case theSelection of
         EdgeSelection edgeNr -> do
-            drawEdge (getEdge edgeNr network) kSELECTED_OPTIONS
+            drawEdge (Network.getEdge edgeNr network) kSELECTED_OPTIONS
         ViaSelection edgeNr viaNr -> do
-            drawVia (getEdge edgeNr network) viaNr kSELECTED_OPTIONS
+            drawVia (Network.getEdge edgeNr network) viaNr kSELECTED_OPTIONS
         MultipleSelection _ _ viaNrs -> do
-            mapM_ (\ (e,v)-> drawVia (getEdge e network) v kSELECTED_OPTIONS)
+            mapM_ (\ (e,v)-> drawVia (Network.getEdge e network) v kSELECTED_OPTIONS)
                   viaNrs
         _ -> return ()
 
     -- draw nodes, highlight the selected ones (if any)
-    ; mapM_ (\(nodeNr, _) -> drawNode nodeNr [ ]) (getNodeAssocs network)
+    ; mapM_ (\(nodeNr, _) -> drawNode nodeNr [ ]) (Network.getNodeAssocs network)
     ; case theSelection of
         NodeSelection  nodeNr ->
             drawNode nodeNr (kSELECTED_OPTIONS
@@ -111,32 +111,32 @@ reallyDrawCanvas doc ppi dc opt =
   where
     network           = getNetwork doc
     theSelection      = getSelection doc
-    (Palette palette) = getPalette network
-    global            = getGlobalInfo network
+    (Palette palette) = Network.getPalette network
+    global            = Network.getGlobalInfo network
 
     drawNode :: Int -> [Prop (DC ())] -> IO ()
     drawNode nodeNr options =
       do{
         -- draw node
-        ; logicalDraw ppi dc center shape options
+        ; Shape.logicalDraw ppi dc center shape options
     --  ; logicalCircle ppi dc center kNODE_RADIUS options
 	-- draw label
         ; when (NodeLabel `elem` dpShowInfo opt) $
-              drawLabel (offset above) False (getName node) center
+              drawLabel (offset above) False (Network.getName node) center
                         (justif above) [ textColor := wxcolor kNodeLabelColour ]
 	-- draw info
         ; when (NodeInfo `elem` dpShowInfo opt) $
-              drawLabel (offset (not above)) False (show (getInfo node))
+              drawLabel (offset (not above)) False (show (Network.getInfo node))
                         center (justif (not above))
                         [ textColor := wxcolor kNodeInfoColour ]
         }
       where
-        node   = getNode nodeNr network
-        above  = getNameAbove node
-        center = getPosition node
+        node   = Network.getNode nodeNr network
+        above  = Network.getNameAbove node
+        center = Network.getPosition node
         shape  = either (\name-> maybe Shape.circle fst
                                        (Prelude.lookup name palette))
-                        id (getShape node)
+                        id (Network.getShape node)
         offset b = (if b then negate else id) kNODE_RADIUS
         justif b = Justify CentreJ (if b then BottomJ else TopJ)
 
@@ -162,26 +162,26 @@ reallyDrawCanvas doc ppi dc opt =
         ; logicalText ppi dc (DoublePoint x (y+voffset)) text justify opts
         }
 
-    drawEdge :: InfoKind e g => Edge e -> [Prop (DC ())] -> IO ()
+    drawEdge :: InfoKind e g => Network.Edge e -> [Prop (DC ())] -> IO ()
     drawEdge edge options  =
-      do{ logicalLineSegments ppi dc (pt1:via++[pt2]) options
+      do{ Shape.logicalLineSegments ppi dc (pt1:via++[pt2]) options
         -- arrow on the end
         ; logicalPoly ppi dc [pt2, tr1, tr2] (options ++ solidFill licorice)
 	-- draw info
         ; when (EdgeInfo `elem` dpShowInfo opt) $
            -- logicalTextRotated ppi dc (middle via) (show info) 45
            --           [ textColor := wxcolor kEdgeInfoColour ]
-              drawLabel 0 False (show (getEdgeInfo edge)) (middle via)
+              drawLabel 0 False (show (Network.getEdgeInfo edge)) (middle via)
                         (Justify CentreJ BottomJ)
                         [ textColor := wxcolor kEdgeInfoColour ]
         }
       where
-        fromNode   = getNode (getEdgeFrom edge) network
-        toNode     = getNode (getEdgeTo   edge) network
+        fromNode   = Network.getNode (Network.getEdgeFrom edge) network
+        toNode     = Network.getNode (Network.getEdgeTo   edge) network
 
-        fromPoint  = getPosition fromNode
-        toPoint    = getPosition toNode
-        via        = getEdgeVia edge
+        fromPoint  = Network.getPosition fromNode
+        toPoint    = Network.getPosition toNode
+        via        = Network.getEdgeVia edge
 
         fstEdgeVector = (head (via++[toPoint]))
                              `subtractDoublePointVector` fromPoint
@@ -204,9 +204,9 @@ reallyDrawCanvas doc ppi dc opt =
         tr1 = translatePolar (endAngle + pi + pi / 6) kARROW_SIZE pt2
         tr2 = translatePolar (endAngle + pi - pi / 6) kARROW_SIZE pt2
 
-    drawVia :: Edge e -> ViaNr -> [Prop (DC ())] -> IO ()
+    drawVia :: Network.Edge e -> Network.ViaNr -> [Prop (DC ())] -> IO ()
     drawVia e n options =
-        let pt = (getEdgeVia e)!!n in
+        let pt = (Network.getEdgeVia e)!!n in
         do logicalCircle ppi dc pt kEDGE_CLICK_RANGE
                 (options ++ solidFill violet)
 
@@ -218,31 +218,31 @@ clickedNode :: DoublePoint -> Document g n e -> Maybe Int
 clickedNode clickedPoint doc =
     let network = getNetwork doc
         nodeAssocs = case getSelection doc of
-                        NodeSelection nodeNr -> [(nodeNr, getNode nodeNr network)]
+                        NodeSelection nodeNr -> [(nodeNr, Network.getNode nodeNr network)]
                         _ -> []
-                  ++ reverse (getNodeAssocs network)
+                  ++ reverse (Network.getNodeAssocs network)
     in case filter (\(_, node) -> node `nodeContains` clickedPoint) nodeAssocs of
         [] -> Nothing
         ((i, _):_) -> Just i
 
-nodeContains :: Node n -> DoublePoint -> Bool
+nodeContains :: Network.Node n -> DoublePoint -> Bool
 nodeContains node clickedPoint =
-    distancePointPoint (getPosition node) clickedPoint
+    distancePointPoint (Network.getPosition node) clickedPoint
       < kNODE_RADIUS
 
 -- | Finds which edge of the network is clicked by the mouse, if any
-clickedEdge :: DoublePoint -> Network g n e -> Maybe Int
+clickedEdge :: DoublePoint -> Network.Network g n e -> Maybe Int
 clickedEdge clickedPoint network =
-    let assocs = getEdgeAssocs network
+    let assocs = Network.getEdgeAssocs network
     in case filter (\(_, edge) -> isJust (edgeContains edge clickedPoint network)) assocs of
         [] -> Nothing
         ((i, _):_) -> Just i
 
-edgeContains :: Edge e -> DoublePoint -> Network g n e -> Maybe Int
+edgeContains :: Network.Edge e -> DoublePoint -> Network.Network g n e -> Maybe Int
 edgeContains edge clickedPoint network =
-    let p0 = getNodePosition network (getEdgeFrom edge)
-        p1 = getNodePosition network (getEdgeTo   edge)
-        via= getEdgeVia edge
+    let p0 = Network.getNodePosition network (Network.getEdgeFrom edge)
+        p1 = Network.getNodePosition network (Network.getEdgeTo   edge)
+        via= Network.getEdgeVia edge
         p  = clickedPoint
         numberedDistancesToSegments = zip [0..] $
               zipWith (\p0 p1-> distanceSegmentPoint p0 p1 p)
@@ -253,11 +253,11 @@ edgeContains edge clickedPoint network =
          nrs -> Just (head nrs)
 
 -- | Finds which 'via' control point is clicked by the mouse, if any
-clickedVia :: DoublePoint -> Network g n e -> Maybe (Int,Int)
+clickedVia :: DoublePoint -> Network.Network g n e -> Maybe (Int,Int)
 clickedVia clickedPoint network =
     let allVia = concatMap (\ (k,e)-> zipWith (\n v->((k,n),v))
-                                              [0..] (getEdgeVia e))
-                           (IntMap.toList (networkEdges network))
+                                              [0..] (Network.getEdgeVia e))
+                           (IntMap.toList (Network.networkEdges network))
     in case filter (\ (_,v)-> distancePointPoint v clickedPoint
                               < kEDGE_CLICK_RANGE) allVia of
         [] -> Nothing

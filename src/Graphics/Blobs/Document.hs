@@ -5,7 +5,7 @@
     and to get and set components of the Document datatype.
 -}
 
-module Document
+module Graphics.Blobs.Document
     ( Document
     , Selection(..)
     , empty
@@ -15,9 +15,9 @@ module Document
     , updateNetwork, updateNetworkEx
     ) where
 
-import qualified Network
-import InfoKind
-import Math
+import qualified Graphics.Blobs.Network as Network
+import Graphics.Blobs.InfoKind
+import Graphics.Blobs.Math
 
 {--------------------------------------------------
  -- TYPES

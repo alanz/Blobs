@@ -1,11 +1,11 @@
-module StateUtil
+module Graphics.Blobs.StateUtil
     ( repaintAll
     , getNetworkName
     ) where
 
-import State
-import Common
-import qualified PersistentDocument as PD
+import Graphics.Blobs.State
+import Graphics.Blobs.Common
+import qualified Graphics.Blobs.PersistentDocument as PD
 
 import Maybe
 import Graphics.UI.WX

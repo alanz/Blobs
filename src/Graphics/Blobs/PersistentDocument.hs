@@ -36,10 +36,11 @@
       cancelled.
 -}
 
-module PersistentDocument
+module Graphics.Blobs.PersistentDocument
     ( PersistentDocument, PDRecord(..)
 
-    , PersistentDocument.dummy
+    -- , PersistentDocument.dummy
+    , dummy
     , initialise
     , resetDocument
 

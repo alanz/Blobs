@@ -1,4 +1,4 @@
-module Network
+module Graphics.Blobs.Network
     (
     -- * Types
       Network, Node, Edge
@@ -7,7 +7,8 @@ module Network
     , networkEdges  -- dangerous
 
     -- * Creating and printing a network
-    , Network.empty
+    -- , Network.empty
+    , empty
     , dumpNetwork
 
     , getNodeNrs
@@ -54,18 +55,18 @@ module Network
     , setEdgeFromPort, setEdgeToPort
     ) where
 
-import Common
-import Math
-import InfoKind
-import Shape
-import Palette hiding (delete)
+import Graphics.Blobs.Common
+import Graphics.Blobs.Math
+import Graphics.Blobs.InfoKind
+import qualified Graphics.Blobs.Shape as Shape
+import qualified Graphics.Blobs.Palette as P
 
 import qualified Data.IntMap as IntMap -- hiding (map)
 
 data Network g n e = Network
     { networkNodes      :: !(IntMap.IntMap (Node n)) -- ^ maps node numbers to nodes
     , networkEdges      :: !(IntMap.IntMap (Edge e)) -- ^ maps edge numbers to edges
-    , networkPalette    :: Palette n
+    , networkPalette    :: P.Palette n
     , networkCanvasSize :: (Double, Double)
     , networkInfo       :: g
     } deriving Show
@@ -83,7 +84,7 @@ data Node n = Node
     { nodePosition  :: DoublePoint  -- ^ the position of the node on screen
     , nodeName      :: !String
     , nodeNameAbove :: Bool         -- ^ should the name be displayed above (True) of below (False)
-    , nodeShape     :: Either String Shape	-- ^ name from palette, or shape
+    , nodeShape     :: Either String Shape.Shape	-- ^ name from palette, or shape
     , nodeInfo      :: n
     , nodeArity     :: Maybe (PortNr,PortNr)	-- ^ number of in/out connection ports
     } deriving (Show, Read)
@@ -98,7 +99,7 @@ empty :: (InfoKind n g, InfoKind e g) => g -> n -> e -> Network g n e
 empty g _ _ = Network
     { networkNodes      = IntMap.empty
     , networkEdges      = IntMap.empty
-    , networkPalette    = Palette.empty
+    , networkPalette    = P.empty
     , networkCanvasSize = (15, 9)
     , networkInfo       = g
     }
@@ -169,7 +170,7 @@ setEdgeInfo info edge = edge { edgeInfo = info }
 
 constructNode :: (InfoKind n g) =>
                  String -> DoublePoint -> Bool
-                 -> Either String Shape -> n -> Maybe (PortNr,PortNr) -> Node n
+                 -> Either String Shape.Shape -> n -> Maybe (PortNr,PortNr) -> Node n
 constructNode name position nameAbove shape info arity =
     Node
         { nodeName      = name
@@ -204,10 +205,10 @@ setNodeNameAbove nodeNr nameAbove network =
     network { networkNodes = IntMap.insert nodeNr (node { nodeNameAbove = nameAbove }) (networkNodes network) }
   where node = networkNodes network IntMap.! nodeNr
 
-getNodeShape :: Network g n e -> NodeNr -> Either String Shape
+getNodeShape :: Network g n e -> NodeNr -> Either String Shape.Shape
 getNodeShape network nodeNr = nodeShape (networkNodes network IntMap.! nodeNr)
 
-setNodeShape :: NodeNr -> Either String Shape -> Network g n e -> Network g n e
+setNodeShape :: NodeNr -> Either String Shape.Shape -> Network g n e -> Network g n e
 setNodeShape nodeNr shape network =
     network { networkNodes = IntMap.insert nodeNr (node { nodeShape = shape })
                                            (networkNodes network) }
@@ -237,7 +238,7 @@ getNameAbove node = nodeNameAbove node
 getName :: Node a -> String
 getName node = nodeName node
 
-getShape :: Node a -> Either String Shape
+getShape :: Node a -> Either String Shape.Shape
 getShape node = nodeShape node
 
 getPosition :: Node a -> DoublePoint
@@ -256,7 +257,7 @@ setNameAbove above node = node { nodeNameAbove = above }
 setName :: String -> Node a -> Node a
 setName name node = node { nodeName = name }
 
-setShape :: Either String Shape -> Node a -> Node a
+setShape :: Either String Shape.Shape -> Node a -> Node a
 setShape s node = node { nodeShape = s }
 
 setPosition :: DoublePoint -> Node a -> Node a
@@ -336,7 +337,7 @@ getEdges network = IntMap.elems (networkEdges network)
 getNodeNrs :: Network g n e -> [NodeNr]
 getNodeNrs network = IntMap.keys (networkNodes network)
 
-getPalette :: Network g n e -> Palette n
+getPalette :: Network g n e -> P.Palette n
 getPalette network = networkPalette network
 
 getCanvasSize :: Network g n e -> (Double, Double)
@@ -426,7 +427,7 @@ addNodes n network1 =
     in (nodeNr:nodeNrs, network3)
 
 addNodeEx :: InfoKind n g =>
-             String -> DoublePoint -> Bool -> Either String Shape -> n
+             String -> DoublePoint -> Bool -> Either String Shape.Shape -> n
              -> Maybe (PortNr,PortNr)
              -> Network g n e -> (NodeNr, Network g n e)
 addNodeEx name position labelAbove shape info arity network =
@@ -536,7 +537,7 @@ removeVia edgeNr viaNr network =
     network { networkEdges = IntMap.adjust (remove viaNr)
                                     edgeNr (networkEdges network) }
 
-setPalette :: Palette n -> Network g n e -> Network g n e
+setPalette :: P.Palette n -> Network g n e -> Network g n e
 setPalette palette network = network { networkPalette = palette }
 
 setCanvasSize :: (Double, Double) -> Network g n e -> Network g n e

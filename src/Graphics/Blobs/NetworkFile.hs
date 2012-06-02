@@ -1,13 +1,13 @@
 {-# LANGUAGE UndecidableInstances #-}
-module NetworkFile where
+module Graphics.Blobs.NetworkFile where
 
-import Network
-import Math
-import Common
-import Colors
-import Shape
-import InfoKind
-import Palette
+import qualified Graphics.Blobs.Network as N
+import Graphics.Blobs.Math
+import Graphics.Blobs.Common
+import Graphics.Blobs.Colors
+import Graphics.Blobs.Shape
+import Graphics.Blobs.InfoKind
+import Graphics.Blobs.Palette
 
 import Text.XML.HaXml.Types
 import Text.XML.HaXml.Escape
@@ -27,7 +27,7 @@ import List(nub,isPrefixOf)
 
 -- | Print the network data structure to an XML text
 toString :: (InfoKind n g, InfoKind e g, XmlContent g) =>
-            Network g n e -> String
+            N.Network g n e -> String
 toString network = render . Pretty.document $
     Document (Prolog Nothing [] (Just (toDTD (toHType network))) []) emptyST
              (f (toContents network)) []
@@ -40,7 +40,7 @@ toString network = render . Pretty.document $
 --   a list of warnings (Right) and a boolean indicating whether
 --   the file was an old Dazzle file
 fromString :: (InfoKind n g, InfoKind e g, XmlContent g) =>
-              String -> Either String (Network g n e, [String], Bool)
+              String -> Either String (N.Network g n e, [String], Bool)
 fromString xml =
     case xmlParse' "input file" xml of
         Left err -> Left err -- lexical or initial (generic) parse error
@@ -77,18 +77,18 @@ fromStringShow txt =
 -- Internal type isomorphic to (index,value) pairs
 -- (but permits instances of classes)
 ---------------------------------------------------------
-data AssocN n = AssocN Int (Node n)
-deAssocN :: AssocN n -> (Int,Node n)
+data AssocN n = AssocN Int (N.Node n)
+deAssocN :: AssocN n -> (Int,N.Node n)
 deAssocN (AssocN n v) = (n,v)
-data AssocE e = AssocE Int (Edge e)
-deAssocE :: AssocE e -> (Int,Edge e)
+data AssocE e = AssocE Int (N.Edge e)
+deAssocE :: AssocE e -> (Int,N.Edge e)
 deAssocE (AssocE n v) = (n,v)
 
 ---------------------------------------------------------
 -- Convert our data type to/from an XML tree
 ---------------------------------------------------------
 instance (HTypeable g, HTypeable n, HTypeable e)
-         => HTypeable (Network g n e) where
+         => HTypeable (N.Network g n e) where
     toHType _ = Defined "Network" [] [Constr "Network" [] []]
  -- toHType g = Defined "Network" [] [Constr "Network" []
  --			[ Tagged "Width" [String]
@@ -99,21 +99,21 @@ instance (HTypeable g, HTypeable n, HTypeable e)
  --			, toHType (getEdgeAssocs g)
  --			]]
 instance (InfoKind n g, InfoKind e g, XmlContent g) =>
-         XmlContent (Network g n e) where
+         XmlContent (N.Network g n e) where
     toContents network =
         [CElem (Elem "Network" []
                    [ simpleString  "Width"     (show width)
                    , simpleString  "Height"    (show height)
                    , makeTag       "Info"      (toContents netInfo)
-                   , makeTag       "Palette"   (toContents (getPalette network))
+                   , makeTag       "Palette"   (toContents (N.getPalette network))
                    , makeTag       "Nodes"     (concatMap toContents nodeAssocs)
                    , makeTag       "Edges"     (concatMap toContents edgeAssocs)
                    ]) () ]
       where
-        nodeAssocs = map (uncurry AssocN) $ getNodeAssocs network
-        edgeAssocs = map (uncurry AssocE) $ getEdgeAssocs network
-        (width, height) = getCanvasSize network
-        netInfo = getGlobalInfo network
+        nodeAssocs = map (uncurry AssocN) $ N.getNodeAssocs network
+        edgeAssocs = map (uncurry AssocE) $ N.getEdgeAssocs network
+        (width, height) = N.getCanvasSize network
+        netInfo = N.getGlobalInfo network
     parseContents = do
         { inElement "Network" $ do
               { w  <- inElement "Width"  $ fmap read XML.text
@@ -123,11 +123,11 @@ instance (InfoKind n g, InfoKind e g, XmlContent g) =>
               ; ns <- inElement "Nodes"  $ many1 parseContents
               ; es <- inElement "Edges"  $ many1 parseContents
               ; networkValid ns es
-              ; return ( setCanvasSize (w,h)
-                       . setPalette p
-                       . setNodeAssocs (map deAssocN ns)
-                       . setEdgeAssocs (map deAssocE es)
-                       $ Network.empty i undefined undefined)
+              ; return ( N.setCanvasSize (w,h)
+                       . N.setPalette p
+                       . N.setNodeAssocs (map deAssocN ns)
+                       . N.setEdgeAssocs (map deAssocE es)
+                       $ N.empty i undefined undefined)
               }
         }
 
@@ -166,17 +166,17 @@ instance (InfoKind e g) => XmlContent (AssocE e) where
       where num (AttValue [Left ('E':n)]) = return (read n)
             num (AttValue s) = fail ("Problem reading Edge ID: "++verbatim s)
 
-instance HTypeable (Node n) where
+instance HTypeable (N.Node n) where
     toHType _ = Defined "Node" [] [Constr "Node" [] []]
-instance (InfoKind n g) => XmlContent (Node n) where
+instance (InfoKind n g) => XmlContent (N.Node n) where
     toContents node =
         [ makeTag "Node"
-            (toContents (getPosition node) ++
-            [ escapeString "Name"       (getName node)
-            , simpleString "LabelAbove" (show (getNameAbove node))
-            , makeTag      "Shape"      (toContents (getShape node))
-            , makeTag      "Info"       (toContents (getInfo node))
-            , makeTag      "Arity"      (toContents (getArity node))
+            (toContents (N.getPosition node) ++
+            [ escapeString "Name"       (N.getName node)
+            , simpleString "LabelAbove" (show (N.getNameAbove node))
+            , makeTag      "Shape"      (toContents (N.getShape node))
+            , makeTag      "Info"       (toContents (N.getInfo node))
+            , makeTag      "Arity"      (toContents (N.getArity node))
             ])
         ]
     parseContents = do
@@ -188,7 +188,7 @@ instance (InfoKind n g) => XmlContent (Node n) where
               ; i <- inElement "Info" $ parseContents
               ; r <- (inElement "Arity" $ parseContents)
                        `onFail` (return Nothing)
-              ; return (constructNode n p a s i r)
+              ; return (N.constructNode n p a s i r)
               }
         }
 
@@ -205,17 +205,17 @@ instance XmlContent DoublePoint where
         ; return (DoublePoint x y)
         }
 
-instance HTypeable (Edge e) where
+instance HTypeable (N.Edge e) where
     toHType _ = Defined "Edge" [] [Constr "Edge" [] []]
-instance InfoKind e g => XmlContent (Edge e) where
+instance InfoKind e g => XmlContent (N.Edge e) where
     toContents edge =
         [ makeTag "Edge"
-            [ simpleString  "From"      (show (getEdgeFrom edge))
-            , simpleString  "To"        (show (getEdgeTo edge))
-            , makeTag       "Via"       (concatMap toContents (getEdgeVia edge))
-            , makeTag       "Info"      (toContents (getEdgeInfo edge))
-            , makeTag       "FromPort"  (toContents (getEdgeFromPort edge))
-            , makeTag       "ToPort"    (toContents (getEdgeToPort edge))
+            [ simpleString  "From"      (show (N.getEdgeFrom edge))
+            , simpleString  "To"        (show (N.getEdgeTo edge))
+            , makeTag       "Via"       (concatMap toContents (N.getEdgeVia edge))
+            , makeTag       "Info"      (toContents (N.getEdgeInfo edge))
+            , makeTag       "FromPort"  (toContents (N.getEdgeFromPort edge))
+            , makeTag       "ToPort"    (toContents (N.getEdgeToPort edge))
             ]
         ]
     parseContents = do
@@ -228,7 +228,7 @@ instance InfoKind e g => XmlContent (Edge e) where
                           `onFail` (return 0)
               ; tp <- (inElement "ToPort" $ parseContents)
                           `onFail` (return 0)
-              ; return (constructEdge f fp t tp v i)
+              ; return (N.constructEdge f fp t tp v i)
               }
         }
 
@@ -386,8 +386,8 @@ networkValid nodeAssocs edgeAssocs
             ; let multipleEdges = duplicatesBy betweenSameNodes edges
             ; when (not (null multipleEdges)) $
                 fail $ "There are multiple edges between the following node pairs: " ++
-                    commasAnd [ "(" ++ show (getEdgeFrom e) ++ ", "
-                                    ++ show (getEdgeTo e) ++ ")"
+                    commasAnd [ "(" ++ show (N.getEdgeFrom e) ++ ", "
+                                    ++ show (N.getEdgeTo e) ++ ")"
                               | e <- multipleEdges
                               ]
             ; return ()
@@ -398,7 +398,7 @@ networkValid nodeAssocs edgeAssocs
 
 -- Check whether edges refer to existing node numbers and whether
 -- there are no edges that start and end in the same node
-checkEdge :: [NodeNr] -> AssocE e -> XMLParser ()
+checkEdge :: [N.NodeNr] -> AssocE e -> XMLParser ()
 checkEdge nodeNrs (AssocE edgeNr edge)
     | fromNr == toNr =
         fail $ "Edge " ++ show edgeNr ++ ": from-node and to-node are the same"
@@ -406,8 +406,8 @@ checkEdge nodeNrs (AssocE edgeNr edge)
     | toNr   `notElem` nodeNrs = nonExistingNode toNr
     | otherwise                = return ()
   where
-    fromNr = getEdgeFrom edge
-    toNr   = getEdgeTo   edge
+    fromNr = N.getEdgeFrom edge
+    toNr   = N.getEdgeTo   edge
     nonExistingNode nodeNr =
         fail $ "Edge " ++ show edgeNr ++ ": refers to non-existing node "
                ++ show nodeNr
@@ -416,11 +416,11 @@ containsDuplicates :: Eq a => [a] -> Bool
 containsDuplicates xs = length (nub xs) /= length xs
 
 -- Partial equality on edges
-betweenSameNodes :: Edge e -> Edge e -> Bool
+betweenSameNodes :: N.Edge e -> N.Edge e -> Bool
 betweenSameNodes e1 e2 =
-    (getEdgeFrom e1 == getEdgeFrom e2  &&  getEdgeTo e1 == getEdgeTo e2)
+    (N.getEdgeFrom e1 == N.getEdgeFrom e2  &&  N.getEdgeTo e1 == N.getEdgeTo e2)
     ||
-    (getEdgeFrom e1 == getEdgeTo e2    &&  getEdgeTo e1 == getEdgeFrom e1)
+    (N.getEdgeFrom e1 == N.getEdgeTo e2    &&  N.getEdgeTo e1 == N.getEdgeFrom e1)
 
 -- Returns elements that appear more than once in a list
 duplicates :: Eq a => [a] -> [a]

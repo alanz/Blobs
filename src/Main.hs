@@ -2,13 +2,13 @@
 {-# LANGUAGE MultiParamTypeClasses #-}
 module Main (main, gain) where
 
-import NetworkUI
+import qualified Graphics.Blobs.NetworkUI as NetworkUI
 import Graphics.UI.WX
-import State
-import InfoKind
+import qualified Graphics.Blobs.State as State
+import Graphics.Blobs.InfoKind
 
-import Network
-import Operations
+import Graphics.Blobs.Network
+import Graphics.Blobs.Operations
 --import IntMap (IntMap)
 import qualified Data.IntMap as IntMap
 import List (nub)

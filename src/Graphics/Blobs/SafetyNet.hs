@@ -1,4 +1,4 @@
-module SafetyNet where
+module Graphics.Blobs.SafetyNet where
 
 import Graphics.UI.WX hiding (window)
 import Prelude hiding (catch)

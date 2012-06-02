@@ -1,13 +1,14 @@
-module Palette where
+module Graphics.Blobs.Palette where
 
 import List (nub, (\\))
-import Shape
+-- import qualified Graphics.Blobs.Shape as Shape
+import qualified Graphics.Blobs.Shape as Shape
 import Text.Parse
 
-data Palette a = Palette [ (String, (Shape, Maybe a)) ]
+data Palette a = Palette [ (String, (Shape.Shape, Maybe a)) ]
   deriving (Eq, Show, Read)
 
-shapes :: Palette a -> [ (String,(Shape,Maybe a)) ]
+shapes :: Palette a -> [ (String,(Shape.Shape,Maybe a)) ]
 shapes (Palette p) = p
 
 join :: Eq a => Palette a -> Palette a -> Palette a

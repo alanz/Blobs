@@ -1,7 +1,7 @@
-module Constants where
+module Graphics.Blobs.Constants where
 
 import Graphics.UI.WX
-import Colors
+import Graphics.Blobs.Colors
 
 kSELECTED_WIDTH :: Int
 kSELECTED_WIDTH = 3

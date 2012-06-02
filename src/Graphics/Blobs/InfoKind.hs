@@ -2,7 +2,7 @@
 {-# LANGUAGE FunctionalDependencies #-}
 {-# LANGUAGE FlexibleInstances #-}
 {-# LANGUAGE UndecidableInstances #-}
-module InfoKind where
+module Graphics.Blobs.InfoKind where
 
 import Text.Parse
 --import Text.XML.HaXml.XmlContent

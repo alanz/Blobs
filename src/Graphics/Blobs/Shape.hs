@@ -1,16 +1,23 @@
-module Shape where
+module Graphics.Blobs.Shape
+       (
+         Shape(..)
+       , ShapeStyle(..)
+       , circle
+       , logicalDraw
+       , logicalLineSegments
+       ) where
 
-import CommonIO
-import Graphics.UI.WX as WX
+import Graphics.Blobs.CommonIO
+import qualified Graphics.UI.WX as WX
 import Graphics.UI.WXCore hiding (Colour)
 import Graphics.UI.WXCore.Draw
-import Math
+import Graphics.Blobs.Math
 import Text.Parse
 --import Text.XML.HaXml.XmlContent
 --import NetworkFile
 
-import Colors
-import Constants
+import Graphics.Blobs.Colors
+import Graphics.Blobs.Constants
 
 data Shape =
     Circle  { shapeStyle :: ShapeStyle, shapeRadius :: Double }
@@ -127,7 +134,7 @@ instance XmlContent ShapeStyle where
       }
 -}
 
-logicalDraw :: Size -> DC () -> DoublePoint -> Shape -> [Prop (DC ())] -> IO ()
+logicalDraw :: Size -> DC () -> DoublePoint -> Shape -> [WX.Prop (DC ())] -> IO ()
 logicalDraw ppi dc centre shape options =
     case shape of
       Circle {}   -> WX.circle dc (logicalToScreenPoint ppi centre)
@@ -143,10 +150,10 @@ logicalDraw ppi dc centre shape options =
       Composite {}-> mapM_ (\s-> logicalDraw ppi dc centre s options)
                            (shapeSegments shape)
 
-logicalLineSegments :: Size -> DC () -> [DoublePoint] -> [Prop (DC ())] -> IO ()
+logicalLineSegments :: Size -> DC () -> [DoublePoint] -> [WX.Prop (DC ())] -> IO ()
 logicalLineSegments _   _  [_p]                  _options = return ()
 logicalLineSegments ppi dc (fromPoint:toPoint:ps) options =
-  do{ line dc (logicalToScreenPoint ppi fromPoint)
+  do{ WX.line dc (logicalToScreenPoint ppi fromPoint)
               (logicalToScreenPoint ppi toPoint) options
     ; logicalLineSegments ppi dc (toPoint:ps) options
     }
@@ -155,12 +162,12 @@ circle :: Shape
 circle = Circle  { shapeStyle = defaultShapeStyle
                  , shapeRadius = kNODE_RADIUS }
 
-style2options :: ShapeStyle -> [Prop (DC ())]
+style2options :: ShapeStyle -> [WX.Prop (DC ())]
 style2options sty =
-    [ penWidth := styleStrokeWidth sty
-    , penColor := wxcolor (styleStrokeColour sty)
-    , brushKind := BrushSolid
-    , brushColor := wxcolor (styleFill sty)
+    [ WX.penWidth WX.:= styleStrokeWidth sty
+    , WX.penColor WX.:= wxcolor (styleStrokeColour sty)
+    , WX.brushKind WX.:= BrushSolid
+    , WX.brushColor WX.:= wxcolor (styleFill sty)
     ]
 
 defaultShapeStyle :: ShapeStyle

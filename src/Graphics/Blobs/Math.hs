@@ -1,4 +1,4 @@
-module Math
+module Graphics.Blobs.Math
     ( DoublePoint(..), Vector
     , doublePointX, doublePointY
     , intPointToDoublePoint

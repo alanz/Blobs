@@ -1,28 +1,28 @@
-module NetworkUI
+module Graphics.Blobs.NetworkUI
     ( create
     , getConfig, Config
     ) where
 
-import GUIEvents
-import SafetyNet
-import State
-import StateUtil
-import Network
-import NetworkView
-import NetworkFile
-import Document
-import Common
-import CommonIO
-import qualified PersistentDocument as PD
-import qualified PDDefaults as PD
-import Palette
-import InfoKind
-import DisplayOptions
+import Graphics.Blobs.GUIEvents
+import Graphics.Blobs.SafetyNet
+import qualified Graphics.Blobs.State as State
+import Graphics.Blobs.StateUtil
+import qualified Graphics.Blobs.Network as Network
+import Graphics.Blobs.NetworkView
+import qualified Graphics.Blobs.NetworkFile as NetworkFile
+import qualified Graphics.Blobs.Document as Document
+import Graphics.Blobs.Common
+import Graphics.Blobs.CommonIO
+import qualified Graphics.Blobs.PersistentDocument as PD
+import qualified Graphics.Blobs.PDDefaults as PD
+import Graphics.Blobs.Palette
+import Graphics.Blobs.InfoKind
+import Graphics.Blobs.DisplayOptions
 --import Text.XML.HaXml.XmlContent (XmlContent)
 import Text.XML.HaXml.XmlContent.Haskell (XmlContent)
 import Text.Parse
-import Operations
-import NetworkControl (changeGlobalInfo)
+import Graphics.Blobs.Operations
+import Graphics.Blobs.NetworkControl (changeGlobalInfo)
 
 import Graphics.UI.WX hiding (Child, upKey, downKey)
 import Graphics.UI.WXCore
@@ -35,38 +35,38 @@ data Config = NFC
     }
     deriving (Read, Show)
 
-getConfig :: State g n e -> IO Config
+getConfig :: State.State g n e -> IO Config
 getConfig state =
-  do{ theFrame      <- getNetworkFrame state
+  do{ theFrame      <- State.getNetworkFrame state
     ; (x, y)        <- safeGetPosition theFrame
     ; winSize       <- get theFrame clientSize
-    ; pDoc          <- getDocument state
+    ; pDoc          <- State.getDocument state
     ; maybeFileName <- PD.getFileName pDoc
     ; doc <- PD.getDocument pDoc
     ; return (NFC
         { nfcWinDimensions  = (x, y, sizeW winSize, sizeH winSize)
         , nfcFileName       = maybeFileName
-        , nfcSelection      = getSelection doc
+        , nfcSelection      = Document.getSelection doc
         })
     }
 
 create :: (InfoKind n g, InfoKind e g
           , XmlContent g, Parse g, Show g, Descriptor g) =>
-          State g n e -> g -> n -> e -> GraphOps g n e -> IO ()
+          State.State g n e -> g -> n -> e -> GraphOps g n e -> IO ()
 create state g n e ops =
   do{ theFrame <- frame [ text := "Diagram editor"
                         , position      := pt 200 20
                         , clientSize    := sz 300 240 ]
-    ; setNetworkFrame theFrame state
+    ; State.setNetworkFrame theFrame state
 
     -- Create page setup dialog and save in state
     ; pageSetupData  <- pageSetupDialogDataCreate
     ; initialPageSetupDialog <- pageSetupDialogCreate theFrame pageSetupData
     ; objectDelete pageSetupData
-    ; setPageSetupDialog initialPageSetupDialog state
+    ; State.setPageSetupDialog initialPageSetupDialog state
 
     -- Drawing area
-    ; let (width, height) = getCanvasSize (Network.empty g n e)
+    ; let (width, height) = Network.getCanvasSize (Network.empty g n e)
     ; ppi <- getScreenPPI
     ; canvas <- scrolledWindow theFrame
         [ virtualSize   := sz (logicalToScreenX ppi width)
@@ -78,7 +78,7 @@ create state g n e ops =
     ; State.setCanvas canvas state
 
     -- Dummy persistent document to pass around
-    ; pDoc <- getDocument state
+    ; pDoc <- State.getDocument state
 
     -- Attach handlers to drawing area
     ; set canvas
@@ -115,7 +115,7 @@ create state g n e ops =
     ; menuItem fileMenu
         [ text := "Page setup..."
         , on command := safetyNet theFrame $
-              do{ psd <- getPageSetupDialog state
+              do{ psd <- State.getPageSetupDialog state
                 ; dialogShowModal psd
                 ; return ()
                 }
@@ -134,7 +134,7 @@ create state g n e ops =
                            }
                     pageFun _ _ _ = (1, 1)
                 in
-              do{ psd <- getPageSetupDialog state
+              do{ psd <- State.getPageSetupDialog state
                 ; printDialog psd "Blobs print" pageFun printFun
                 }
         ]
@@ -145,7 +145,7 @@ create state g n e ops =
                 let printFun _ _ _ dc _ = paintHandler state dc
                     pageFun _ _ _ = (1, 1)
                 in
-              do{ psd <- getPageSetupDialog state
+              do{ psd <- State.getPageSetupDialog state
                 ; printPreview psd "Blobs preview" pageFun printFun
                 }
         ]
@@ -175,34 +175,34 @@ create state g n e ops =
 
     -- View menu
     ; viewMenu   <- menuPane [ text := "&View" ]
-    ; (DP opts)  <- getDisplayOptions state
+    ; (DP opts)  <- State.getDisplayOptions state
     ; menuItem viewMenu
         [ text := descriptor g
         , checkable := True
         , checked := GlobalInfo `elem` opts
         , on command := safetyNet theFrame $ do
-                            { changeDisplayOptions (toggle GlobalInfo) state
+                            { State.changeDisplayOptions (toggle GlobalInfo) state
                             ; repaintAll state } ]
     ; menuItem viewMenu
         [ text := "Node Labels"
         , checkable := True
         , checked := NodeLabel `elem` opts
         , on command := safetyNet theFrame $ do
-                            { changeDisplayOptions (toggle NodeLabel) state
+                            { State.changeDisplayOptions (toggle NodeLabel) state
                             ; repaintAll state } ]
     ; menuItem viewMenu
         [ text := "Node Info"
         , checkable := True
         , checked := NodeInfo `elem` opts
         , on command := safetyNet theFrame $ do
-                            { changeDisplayOptions (toggle NodeInfo) state
+                            { State.changeDisplayOptions (toggle NodeInfo) state
                             ; repaintAll state } ]
     ; menuItem viewMenu
         [ text := "Edge Info"
         , checkable := True
         , checked := EdgeInfo `elem` opts
         , on command := safetyNet theFrame $ do
-                            { changeDisplayOptions (toggle EdgeInfo) state
+                            { State.changeDisplayOptions (toggle EdgeInfo) state
                             ; repaintAll state } ]
 
     -- Operations menu
@@ -246,11 +246,11 @@ create state g n e ops =
     }
 
 paintHandler :: (InfoKind n g, InfoKind e g, Descriptor g) =>
-                State g n e -> DC () -> IO ()
+                State.State g n e -> DC () -> IO ()
 paintHandler state dc =
-  do{ pDoc <- getDocument state
+  do{ pDoc <- State.getDocument state
     ; doc <- PD.getDocument pDoc
-    ; dp <- getDisplayOptions state
+    ; dp <- State.getDisplayOptions state
     ; drawCanvas doc dc dp
     }
 
@@ -258,7 +258,7 @@ extensions :: [(String, [String])]
 extensions = [ ("Blobs files (.blobs)", ["*.blobs"]) ]
 
 mouseEvent :: (InfoKind n g, InfoKind e g, Show g, Parse g, Descriptor g) =>
-              EventMouse -> ScrolledWindow () -> Frame () -> State g n e -> IO ()
+              EventMouse -> ScrolledWindow () -> Frame () -> State.State g n e -> IO ()
 mouseEvent eventMouse canvas theFrame state = case eventMouse of
     MouseLeftDown mousePoint mods
         | shiftDown mods    -> leftMouseDownWithShift mousePoint state
@@ -274,7 +274,7 @@ mouseEvent eventMouse canvas theFrame state = case eventMouse of
         return ()
 
 keyboardEvent :: (InfoKind n g, InfoKind e g) =>
-                 Frame () -> State g n e -> EventKey -> IO ()
+                 Frame () -> State.State g n e -> EventKey -> IO ()
 keyboardEvent theFrame state (EventKey theKey _ _) =
     case theKey of
         KeyDelete                       -> deleteKey state
@@ -286,23 +286,23 @@ keyboardEvent theFrame state (EventKey theKey _ _) =
         KeyDown                         -> downKey state
         _                               -> propagateEvent
 
-closeDocAndThen :: State g n e -> IO () -> IO ()
+closeDocAndThen :: State.State g n e -> IO () -> IO ()
 closeDocAndThen state action =
-  do{ pDoc <- getDocument state
+  do{ pDoc <- State.getDocument state
     ; continue <- PD.isClosingOkay pDoc
     ; when continue $ action
     }
 
-newItem :: (InfoKind n g, InfoKind e g) => State g n e -> g -> n -> e -> IO ()
+newItem :: (InfoKind n g, InfoKind e g) => State.State g n e -> g -> n -> e -> IO ()
 newItem state g n e =
     closeDocAndThen state $
-      do{ pDoc <- getDocument state
+      do{ pDoc <- State.getDocument state
         ; PD.resetDocument Nothing (Document.empty g n e) pDoc
         ; repaintAll state
         }
 
 openItem :: (InfoKind n g, InfoKind e g, XmlContent g) =>
-            Frame () ->  State g n e -> IO ()
+            Frame () ->  State.State g n e -> IO ()
 openItem theFrame state =
   do{ mbfname <- fileOpenDialog
         theFrame
@@ -317,7 +317,7 @@ openItem theFrame state =
 -- Third argument: Nothing means exceptions are ignored (used in Configuration)
 --              Just f means exceptions are shown in a dialog on top of frame f
 openNetworkFile :: (InfoKind n g, InfoKind e g, XmlContent g) =>
-                   String -> State g n e -> Maybe (Frame ()) -> IO ()
+                   String -> State.State g n e -> Maybe (Frame ()) -> IO ()
 openNetworkFile fname state exceptionsFrame =
   closeDocAndThen state $
   flip catch
@@ -333,8 +333,8 @@ openNetworkFile fname state exceptionsFrame =
         Left err -> ioError (userError err);
         Right (network, warnings, oldFormat) ->
   do{ -- "Open" document
-    ; let newDoc = setNetwork network (Document.empty undefined undefined undefined)
-    ; pDoc <- getDocument state
+    ; let newDoc = Document.setNetwork network (Document.empty undefined undefined undefined)
+    ; pDoc <- State.getDocument state
     ; PD.resetDocument (if null warnings then Just fname else Nothing)
                        newDoc pDoc
     ; applyCanvasSize state
@@ -372,7 +372,7 @@ openNetworkFile fname state exceptionsFrame =
     ; repaintAll state
     }}}
 
-openPalette :: (InfoKind n g, Parse n) => Frame () ->  State g n e -> IO ()
+openPalette :: (InfoKind n g, Parse n) => Frame () ->  State.State g n e -> IO ()
 openPalette theFrame state =
   do{ mbfname <- fileOpenDialog
         theFrame
@@ -387,7 +387,7 @@ openPalette theFrame state =
 -- Third argument: Nothing means exceptions are ignored (used in Configuration)
 --              Just f means exceptions are shown in a dialog on top of frame f
 openPaletteFile :: (InfoKind n g, Parse n) =>
-                   String -> State g n e -> Maybe (Frame ()) -> IO ()
+                   String -> State.State g n e -> Maybe (Frame ()) -> IO ()
 openPaletteFile fname state exceptionsFrame =
   flip catch
     (\exc -> case exceptionsFrame of
@@ -401,9 +401,9 @@ openPaletteFile fname state exceptionsFrame =
     ; case fst (runParser parse contents) of {
         Left msg -> ioError (userError ("Cannot parse shape palette file: "
                                        ++fname++"\n\t"++msg));
-        Right p  -> do{ pDoc <- getDocument state
+        Right p  -> do{ pDoc <- State.getDocument state
                       ;  PD.updateDocument "change palette"
-                             (updateNetwork (setPalette p))
+                             (Document.updateNetwork (Network.setPalette p))
 				-- really ought to go through network and
 				-- change all nodes' stored shape.
                              pDoc
@@ -413,13 +413,13 @@ openPaletteFile fname state exceptionsFrame =
 
 -- | Get the canvas size from the network and change the size of
 --   the widget accordingly
-applyCanvasSize :: State g n e -> IO ()
+applyCanvasSize :: State.State g n e -> IO ()
 applyCanvasSize state =
-  do{ pDoc <- getDocument state
+  do{ pDoc <- State.getDocument state
     ; doc <- PD.getDocument pDoc
-    ; let network = getNetwork doc
-          (width, height) = getCanvasSize network
-    ; canvas <- getCanvas state
+    ; let network = Document.getNetwork doc
+          (width, height) = Network.getCanvasSize network
+    ; canvas <- State.getCanvas state
     ; ppi <- getScreenPPI
     ; set canvas [ virtualSize := sz (logicalToScreenX ppi width)
                                      (logicalToScreenY ppi height) ]
@@ -428,8 +428,8 @@ applyCanvasSize state =
 saveToDisk :: (InfoKind n g, InfoKind e g, XmlContent g) =>
               Frame () -> String -> Document.Document g n e -> IO Bool
 saveToDisk theFrame fileName doc =
-    safeWriteFile theFrame fileName (NetworkFile.toString (getNetwork doc))
+    safeWriteFile theFrame fileName (NetworkFile.toString (Document.getNetwork doc))
 
-exit :: State g n e -> IO ()
+exit :: State.State g n e -> IO ()
 exit state =
     closeDocAndThen state $ propagateEvent

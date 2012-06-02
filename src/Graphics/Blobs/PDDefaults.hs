@@ -14,7 +14,7 @@
     that button, too, if there is nothing to be undone.
 -}
 
-module PDDefaults where
+module Graphics.Blobs.PDDefaults where
 
 import Graphics.UI.WX
 import Graphics.UI.WXCore(wxID_CANCEL)

@@ -1,10 +1,10 @@
-module Operations where
+module Graphics.Blobs.Operations where
 
-import InfoKind
-import Network
-import State
-import Document
-import qualified PersistentDocument as PD
+import Graphics.Blobs.InfoKind
+import Graphics.Blobs.Network
+import Graphics.Blobs.State
+import Graphics.Blobs.Document
+import qualified Graphics.Blobs.PersistentDocument as PD
 
 import qualified Data.IntMap as IntMap
 

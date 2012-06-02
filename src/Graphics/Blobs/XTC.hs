@@ -2,10 +2,10 @@
 {-
   | Module      :  XTC
     Maintainer  :  martijn@cs.uu.nl
-    
+
     eXtended & Typed Controls for wxHaskell
-    
-    
+
+
     TODO: - how to handle duplicates (up to presentation) in item lists
           - check (!!) error that occured in Dazzle
           - implement tSelecting and other events
@@ -17,7 +17,7 @@
           - WxObject vs Object?
 -}
 
-module XTC ( Labeled( toLabel ),
+module Graphics.Blobs.XTC ( Labeled( toLabel ),
            , TValued( tValue ),
            , TItems( tItems ),
            , TSelection( tSelection ),
@@ -67,12 +67,12 @@ instance Labeled x => TSelection x (RadioView x ()) where
     = newAttr "tSelection" viewGetTSelection viewSetTSelection
 
 mkRadioView :: Labeled x => Window a -> Orientation -> [x] -> [Prop (RadioView x ())] -> IO (RadioView x ())
-mkRadioView window orientation viewItems props = 
+mkRadioView window orientation viewItems props =
   mkRadioViewEx window toLabel orientation viewItems props
 
 mkRadioViewEx :: Window a -> (x -> String) -> Orientation -> [x] -> [Prop (RadioView x ())] -> IO (RadioView x ())
-mkRadioViewEx window present orientation viewItems props = 
- do { model <- varCreate viewItems 
+mkRadioViewEx window present orientation viewItems props =
+ do { model <- varCreate viewItems
     ; radioView <- fmap objectCast $ radioBox window orientation (map present viewItems) []
     ; objectSetClientData radioView (return ()) (model, present)
     ; set radioView props
@@ -93,7 +93,7 @@ instance TItems x (ListView x ()) where
 
 mkListView :: Labeled x => Window a -> [Prop (ListView x ())] -> IO (ListView x ())
 mkListView window props = mkListViewEx window toLabel props
-  
+
 mkListViewEx :: Window a -> (x -> String) -> [Prop (ListView x ())] -> IO (ListView x ())
 mkListViewEx window present props = mkViewEx singleListBox window present props
 
@@ -187,7 +187,7 @@ mkComboView window (props :: [Prop (ComboView x ())]) =
   mkViewEx comboBox window (toLabel :: x -> String) props
 
 mkComboViewEx :: Window a -> (x -> String) -> Style -> [Prop (ComboView x ())] -> IO (ComboView x ())
-mkComboViewEx window present stl props = 
+mkComboViewEx window present stl props =
   mkViewEx (\win -> comboBoxEx win stl) window present props
 
 
@@ -265,7 +265,7 @@ instance Parseable String where
 
 TODO: can we make this some kind of default?
 -}
-readParse :: Read x => String -> Maybe x 
+readParse :: Read x => String -> Maybe x
 readParse str = case reads str of
                   [(x, "")] -> Just x
                   _         -> Nothing
@@ -283,13 +283,13 @@ instance TValued x (ValueEntry x ()) where
 
 mkValueEntry :: (Show x, Read x) => Window b -> [ Prop (ValueEntry x ()) ] -> IO (ValueEntry x ())
 mkValueEntry window props = mkValueEntryEx window show readParse props
-                  
+
 mkValueEntryEx :: Window b -> (x -> String) -> (String -> Maybe x) -> [ Prop (ValueEntry x ()) ] -> IO (ValueEntry x ())
 mkValueEntryEx window present parse props =
  do { valueEntry <- fmap objectCast $ textEntry window []
-    ; objectSetClientData valueEntry (return ()) (present, parse) 
+    ; objectSetClientData valueEntry (return ()) (present, parse)
     ; set valueEntry $ props ++ [ on change := validate valueEntry ]
-                                          
+
     ; return valueEntry
     }
  where validate :: ValueEntry x () -> IO ()
@@ -320,7 +320,7 @@ valueEntrySetTValue valueEntry mValue =
 
 class Observable w where
   change :: Event w (IO ())
-  
+
 instance Observable (TextCtrl a) where
   change = newEvent "change" (controlGetOnText) (controlOnText)
 
@@ -344,7 +344,7 @@ mkObservableVar x =
     ; var        <- variable [ value := x ]
     ; return $ ObservableVar observersV var
     }
-    
+
 observableVarGetValue :: ObservableVar x -> IO x
 observableVarGetValue (ObservableVar _ var) = get var value
 
@@ -363,7 +363,7 @@ instance Observable x (ObservableVar x) where
     = newAttr "observers" observableVarGetObservers observableVarSetObservers
 
 observableVarGetObservers :: ObservableVar x -> IO [Observer x]
-observableVarGetObservers (ObservableVar observersV _) = get observersV value 
+observableVarGetObservers (ObservableVar observersV _) = get observersV value
 
 observableVarSetObservers :: ObservableVar x -> [Observer x] -> IO ()
 observableVarSetObservers (ObservableVar observersV var) myObservers = -- return ()
@@ -377,13 +377,13 @@ observableVarSetObservers (ObservableVar observersV var) myObservers = -- return
 
 class Observing w where
   change :: ObservableVar x -> Event w (x -> IO ())
-  
+
 instance Observing (WxObject a) where
   change observableVar
     = newEvent "change" (getOnObserve observableVar) (setOnObserve observableVar)
 
 setOnObserve :: ObservableVar x -> Object a -> (x -> IO ()) -> IO ()
-setOnObserve (ObservableVar observersV var) obj observer = 
+setOnObserve (ObservableVar observersV var) obj observer =
  do { oldObservers <- get observersV value
     ; let otherObservers = filter ((/= objectCast obj) . fst) oldObservers
     ; set observersV [ value := (objectCast obj, observer) : otherObservers ]
@@ -396,10 +396,10 @@ getOnObserve  (ObservableVar observersV _) obj =
  do { myObservers <- get observersV value
     ; case lookup (objectCast obj) myObservers of
         Just obs -> return obs
-        Nothing  -> do { internalError "XTC" "getOnObserve" "object is not an observer" 
+        Nothing  -> do { internalError "XTC" "getOnObserve" "object is not an observer"
                        ; return $ \_ -> return ()
                        }
-    }    
+    }
 -}
 
 
@@ -421,12 +421,12 @@ xtc :: IO ()
 xtc = start $
  do { -- counterV <- mkObservableVar 1
     ; f <- frame []
-    
-    
+
+
     ; listV <- mkListView f [ tItems := ["sdfsdf", "fdssd"]
                                , enabled := True
                                ]
-    
+
     ; choiceV <- mkChoiceView f [ tItems := ["sdfsdf", "fdssd"]
                                , enabled := True
                                ]
@@ -435,18 +435,18 @@ xtc = start $
                                ]
     ; t <- textEntry f []
     ; ve <- mkValueEntry f [ tValue := Just True ]
-  --  ; set t [ on (change counterV) := \i -> set t [ text := show i ] ] 
-    
+  --  ; set t [ on (change counterV) := \i -> set t [ text := show i ] ]
+
     ; bUp   <- button f [ text := "increase", on command := do { s1 <- get comboV tSelection
                                                                ; s2 <- get listV text
                                                                ; print (s1,s2)
                                                                } ] -- set counterV [ value :~ (+1) ] ]
   --  ; bDown <- button f [ text := "decrease", on command := set counterV [ value :~ (+ (-1::Int)) ] ]
-    
+
  --   ; bChangeHandler <- button f [ text := "change handler"
  --                                , on command := set t [ on (change counterV) := \i -> set t [text := "<<"++show i++">>"] ]]
     ; set f [ layout := column 5 [ row 5 [ Graphics.UI.WX.label "Counter value:", widget t ]
-   --                                      , hfloatCenter $ row 5 [ widget bUp, widget bDown ] 
+   --                                      , hfloatCenter $ row 5 [ widget bUp, widget bDown ]
    --                                      , hfloatCenter $ widget bChangeHandler
                                          , widget listV
                                          , widget choiceV
@@ -454,5 +454,5 @@ xtc = start $
                                          , widget ve
                                          ]
                                  ]
-    
+
     }
