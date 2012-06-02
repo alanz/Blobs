@@ -28,7 +28,6 @@ data ShapeStyle = ShapeStyle
     }
   deriving (Eq, Show, Read)
 
-
 instance Parse Shape where
   parse = oneOf
       [ do{ isWord "Circle"
@@ -64,7 +63,6 @@ instance Parse ShapeStyle where
                 `discard` isWord "," `apply` field "styleFill"
                 `discard` isWord "}"
             }
-
 
 {-
 instance HTypeable Shape where

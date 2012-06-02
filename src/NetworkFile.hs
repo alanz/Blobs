@@ -13,7 +13,8 @@ import Text.XML.HaXml.Types
 import Text.XML.HaXml.Escape
 import Text.XML.HaXml.Posn (noPos)
 import Text.XML.HaXml.Parse hiding (element)
-import Text.XML.HaXml.XmlContent as XML
+-- import Text.XML.HaXml.XmlContent as XML
+import Text.XML.HaXml.XmlContent.Haskell as XML
 import Text.XML.HaXml.Combinators (replaceAttrs)
 import Text.XML.HaXml.Verbatim
 import Text.XML.HaXml.TypeMapping (toDTD,toHType)
@@ -323,7 +324,14 @@ instance XmlContent a => XmlContent (Palette a) where
     parseContents = do
         { inElement "Palette" $ fmap Palette (many1 parseContents) }
 
+{-
+instance XmlContent a => XmlContent (Either String a) where
+  toContents (Left str)    = [ simpleString "ShapeName" (show str) ]
+  toContents (Right shape) = (toContents shape)
 
+  parseContents = do
+    return () -- Need to implement this
+-}
 ---- UTILITY FUNCTIONS
 
 -- Abbreviations

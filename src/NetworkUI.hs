@@ -18,7 +18,8 @@ import qualified PDDefaults as PD
 import Palette
 import InfoKind
 import DisplayOptions
-import Text.XML.HaXml.XmlContent (XmlContent)
+--import Text.XML.HaXml.XmlContent (XmlContent)
+import Text.XML.HaXml.XmlContent.Haskell (XmlContent)
 import Text.Parse
 import Operations
 import NetworkControl (changeGlobalInfo)

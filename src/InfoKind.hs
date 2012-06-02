@@ -5,7 +5,8 @@
 module InfoKind where
 
 import Text.Parse
-import Text.XML.HaXml.XmlContent
+--import Text.XML.HaXml.XmlContent
+import Text.XML.HaXml.XmlContent.Haskell
 
 -- | The @InfoKind@ class is a predicate that ensures we can always create
 --   at least a blank (empty) information element, that we can read and
@@ -37,7 +38,8 @@ instance Descriptor () where
     descriptor _ = "null global info type"
 
 -- -----------------------------------------------
+{-
 instance XmlContent () where
   toContents = undefined
   parseContents = undefined
-
+-}
