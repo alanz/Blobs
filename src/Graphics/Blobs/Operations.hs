@@ -1,6 +1,5 @@
 module Graphics.Blobs.Operations where
 
--- import Graphics.Blobs.InfoKind
 import Graphics.Blobs.Network
 import Graphics.Blobs.State
 import Graphics.Blobs.Document

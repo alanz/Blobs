@@ -15,10 +15,8 @@ import Graphics.Blobs.Common
 import Graphics.Blobs.CommonIO
 import qualified Graphics.Blobs.PersistentDocument as PD
 import qualified Graphics.Blobs.PDDefaults as PD
---import Graphics.Blobs.Palette
 import Graphics.Blobs.InfoKind
 import Graphics.Blobs.DisplayOptions
---import Text.XML.HaXml.XmlContent (XmlContent)
 import Text.XML.HaXml.XmlContent.Haskell (XmlContent)
 import Text.Parse
 import Graphics.Blobs.Operations
@@ -26,7 +24,6 @@ import Graphics.Blobs.NetworkControl (changeGlobalInfo)
 
 import Graphics.UI.WX hiding (Child, upKey, downKey)
 import Graphics.UI.WXCore
--- import Maybe
 
 data Config = NFC
     { nfcWinDimensions  :: (Int, Int, Int, Int) -- x, y, width, height
