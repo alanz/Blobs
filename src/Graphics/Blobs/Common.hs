@@ -1,7 +1,6 @@
 module Graphics.Blobs.Common (module Graphics.Blobs.Common {-, module IOExts-}, module Graphics.Blobs.Colors) where
 
 import Graphics.Blobs.Colors
--- import IOExts(trace)
 import Debug.Trace (trace)
 import qualified Data.IntMap as IntMap
 import Char(isSpace)
