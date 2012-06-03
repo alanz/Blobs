@@ -3,6 +3,8 @@ module Graphics.Blobs.Colors where
 import Graphics.UI.WX
 import Text.Parse
 
+import qualified Text.XML.HaXml.XmlContent.Haskell as XML
+
 
 -- Different spelling of colour/color to distinguish local/wx datatypes.
 data Colour = RGB !Int !Int !Int deriving (Eq,Show,Read)
@@ -84,3 +86,25 @@ turquoise = RGB 64 224 208
 orangeRed = RGB 255 69 0
 gold = RGB 255 215 0
 darkSlateGray = RGB 47 79 79
+
+-- ---------------------------------------------------------------------
+-- Migrating orphan instances home
+
+{- derived by DrIFT -}
+instance XML.HTypeable Colour where
+    toHType v = XML.Defined "Colour" []
+                   [XML.Constr "RGB" [] [XML.toHType aa,XML.toHType ab,XML.toHType ac]]
+      where (RGB aa ab ac) = v
+instance XML.XmlContent Colour where
+    parseContents = do
+        { XML.inElement "RGB" $ do
+              { aa <- XML.parseContents
+              ; ab <- XML.parseContents
+              ; ac <- XML.parseContents
+              ; return (RGB aa ab ac)
+              }
+        }
+    toContents v@(RGB aa ab ac) =
+        [XML.mkElemC (XML.showConstr 0 (XML.toHType v))
+                 (concat [XML.toContents aa, XML.toContents ab, XML.toContents ac])]
+

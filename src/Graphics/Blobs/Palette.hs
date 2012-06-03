@@ -5,6 +5,8 @@ import List (nub, (\\))
 import qualified Graphics.Blobs.Shape as Shape
 import Text.Parse
 
+import qualified Text.XML.HaXml.XmlContent.Haskell as XML
+
 data Palette a = Palette [ (String, (Shape.Shape, Maybe a)) ]
   deriving (Eq, Show, Read)
 
@@ -27,4 +29,18 @@ instance Functor Palette where
 
 instance Parse a => Parse (Palette a) where
     parse = do{ isWord "Palette"; fmap Palette $ parse }
+
+
+-- ---------------------------------------------------------------------
+-- orphan instances coming home
+
+{- handwritten -}
+instance XML.HTypeable a => XML.HTypeable (Palette a) where
+    toHType p = XML.Defined "Palette" [XML.toHType a] [XML.Constr "Palette" [] []]
+              where (Palette ((_,(_,Just a)):_)) = p
+instance XML.XmlContent a => XML.XmlContent (Palette a) where
+    toContents (Palette xs) =
+        [ XML.mkElemC "Palette" (concatMap XML.toContents xs) ]
+    parseContents = do
+        { XML.inElement "Palette" $ fmap Palette (XML.many1 XML.parseContents) }
 

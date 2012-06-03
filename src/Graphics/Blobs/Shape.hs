@@ -19,6 +19,10 @@ import Text.Parse
 import Graphics.Blobs.Colors
 import Graphics.Blobs.Constants
 
+import Text.XML.HaXml.Types
+import qualified Text.XML.HaXml.XmlContent.Haskell as XML
+import List(isPrefixOf)
+
 data Shape =
     Circle  { shapeStyle :: ShapeStyle, shapeRadius :: Double }
   | Polygon { shapeStyle :: ShapeStyle, shapePerimeter :: [DoublePoint] }
@@ -176,3 +180,71 @@ defaultShapeStyle =
     ShapeStyle	{ styleStrokeWidth = 1
 		, styleStrokeColour = licorice
 		, styleFill = nodeColor }
+
+-- ---------------------------------------------------------------------
+-- Orphan instances coming home
+
+{- derived by DrIFT -}
+instance XML.HTypeable Shape where
+    toHType v = XML.Defined "Shape" []
+                    [XML.Constr "Circle" [] [XML.toHType aa,XML.toHType ab]
+                    ,XML.Constr "Polygon" [] [XML.toHType ac,XML.toHType ad]
+                    ,XML.Constr "Lines" [] [XML.toHType ae,XML.toHType af]
+                    ,XML.Constr "Composite" [] [XML.toHType ag]]
+      where
+        (Circle aa ab) = v
+        (Polygon ac ad) = v
+        (Lines ae af) = v
+        (Composite ag) = v
+instance XML.XmlContent Shape where
+    parseContents = do
+        { e@(Elem t _ _) <- XML.element  ["Circle","Polygon","Lines","Composite"]
+        ; case t of
+          _ | "Polygon" `isPrefixOf` t -> XML.interior e $
+                do { ac <- XML.parseContents
+                   ; ad <- XML.parseContents
+                   ; return (Polygon ac ad)
+                   }
+            | "Lines" `isPrefixOf` t -> XML.interior e $
+                do { ae <- XML.parseContents
+                   ; af <- XML.parseContents
+                   ; return (Lines ae af)
+                   }
+            | "Composite" `isPrefixOf` t -> XML.interior e $
+                fmap Composite XML.parseContents
+            | "Circle" `isPrefixOf` t -> XML.interior e $
+                do { aa <- XML.parseContents
+                   ; ab <- XML.parseContents
+                   ; return (Circle aa ab)
+                   }
+        }
+    toContents v@(Circle aa ab) =
+        [XML.mkElemC (XML.showConstr 0 (XML.toHType v)) (concat [XML.toContents aa,
+                                                     XML.toContents ab])]
+    toContents v@(Polygon ac ad) =
+        [XML.mkElemC (XML.showConstr 1 (XML.toHType v)) (concat [XML.toContents ac,
+                                                     XML.toContents ad])]
+    toContents v@(Lines ae af) =
+        [XML.mkElemC (XML.showConstr 2 (XML.toHType v)) (concat [XML.toContents ae,
+                                                     XML.toContents af])]
+    toContents v@(Composite ag) =
+        [XML.mkElemC (XML.showConstr 3 (XML.toHType v)) (XML.toContents ag)]
+
+{- derived by DrIFT -}
+instance XML.HTypeable ShapeStyle where
+    toHType v = XML.Defined "ShapeStyle" []
+                    [XML.Constr "ShapeStyle" [] [XML.toHType aa,XML.toHType ab,XML.toHType ac]]
+      where (ShapeStyle aa ab ac) = v
+instance XML.XmlContent ShapeStyle where
+    parseContents = do
+        { XML.inElement  "ShapeStyle" $ do
+              { aa <- XML.parseContents
+              ; ab <- XML.parseContents
+              ; ac <- XML.parseContents
+              ; return (ShapeStyle aa ab ac)
+              }
+        }
+    toContents v@(ShapeStyle aa ab ac) =
+        [XML.mkElemC (XML.showConstr 0 (XML.toHType v))
+                 (concat [XML.toContents aa, XML.toContents ab, XML.toContents ac])]
+

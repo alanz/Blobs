@@ -69,7 +69,7 @@ import Text.XML.HaXml.Combinators (replaceAttrs)
 import Text.XML.HaXml.Types
 import Text.XML.HaXml.Verbatim
 import qualified Text.XML.HaXml.XmlContent.Haskell as XML
-import List(nub,isPrefixOf)
+import List(nub)
 import Monad(when)
 
 data Network g n e = Network
@@ -735,98 +735,6 @@ instance InfoKind e g => XML.XmlContent (Edge e) where
               ; return (constructEdge f fp t tp v i)
               }
         }
-
-{- derived by DrIFT -}
-instance XML.HTypeable Colour where
-    toHType v = XML.Defined "Colour" []
-                   [XML.Constr "RGB" [] [XML.toHType aa,XML.toHType ab,XML.toHType ac]]
-      where (RGB aa ab ac) = v
-instance XML.XmlContent Colour where
-    parseContents = do
-        { XML.inElement "RGB" $ do
-              { aa <- XML.parseContents
-              ; ab <- XML.parseContents
-              ; ac <- XML.parseContents
-              ; return (RGB aa ab ac)
-              }
-        }
-    toContents v@(RGB aa ab ac) =
-        [XML.mkElemC (XML.showConstr 0 (XML.toHType v))
-                 (concat [XML.toContents aa, XML.toContents ab, XML.toContents ac])]
-
-{- derived by DrIFT -}
-instance XML.HTypeable Shape.Shape where
-    toHType v = XML.Defined "Shape" []
-                    [XML.Constr "Circle" [] [XML.toHType aa,XML.toHType ab]
-                    ,XML.Constr "Polygon" [] [XML.toHType ac,XML.toHType ad]
-                    ,XML.Constr "Lines" [] [XML.toHType ae,XML.toHType af]
-                    ,XML.Constr "Composite" [] [XML.toHType ag]]
-      where
-        (Shape.Circle aa ab) = v
-        (Shape.Polygon ac ad) = v
-        (Shape.Lines ae af) = v
-        (Shape.Composite ag) = v
-instance XML.XmlContent Shape.Shape where
-    parseContents = do
-        { e@(Elem t _ _) <- XML.element  ["Circle","Polygon","Lines","Composite"]
-        ; case t of
-          _ | "Polygon" `isPrefixOf` t -> XML.interior e $
-                do { ac <- XML.parseContents
-                   ; ad <- XML.parseContents
-                   ; return (Shape.Polygon ac ad)
-                   }
-            | "Lines" `isPrefixOf` t -> XML.interior e $
-                do { ae <- XML.parseContents
-                   ; af <- XML.parseContents
-                   ; return (Shape.Lines ae af)
-                   }
-            | "Composite" `isPrefixOf` t -> XML.interior e $
-                fmap Shape.Composite XML.parseContents
-            | "Circle" `isPrefixOf` t -> XML.interior e $
-                do { aa <- XML.parseContents
-                   ; ab <- XML.parseContents
-                   ; return (Shape.Circle aa ab)
-                   }
-        }
-    toContents v@(Shape.Circle aa ab) =
-        [XML.mkElemC (XML.showConstr 0 (XML.toHType v)) (concat [XML.toContents aa,
-                                                     XML.toContents ab])]
-    toContents v@(Shape.Polygon ac ad) =
-        [XML.mkElemC (XML.showConstr 1 (XML.toHType v)) (concat [XML.toContents ac,
-                                                     XML.toContents ad])]
-    toContents v@(Shape.Lines ae af) =
-        [XML.mkElemC (XML.showConstr 2 (XML.toHType v)) (concat [XML.toContents ae,
-                                                     XML.toContents af])]
-    toContents v@(Shape.Composite ag) =
-        [XML.mkElemC (XML.showConstr 3 (XML.toHType v)) (XML.toContents ag)]
-
-{- derived by DrIFT -}
-instance XML.HTypeable Shape.ShapeStyle where
-    toHType v = XML.Defined "ShapeStyle" []
-                    [XML.Constr "ShapeStyle" [] [XML.toHType aa,XML.toHType ab,XML.toHType ac]]
-      where (Shape.ShapeStyle aa ab ac) = v
-instance XML.XmlContent Shape.ShapeStyle where
-    parseContents = do
-        { XML.inElement  "ShapeStyle" $ do
-              { aa <- XML.parseContents
-              ; ab <- XML.parseContents
-              ; ac <- XML.parseContents
-              ; return (Shape.ShapeStyle aa ab ac)
-              }
-        }
-    toContents v@(Shape.ShapeStyle aa ab ac) =
-        [XML.mkElemC (XML.showConstr 0 (XML.toHType v))
-                 (concat [XML.toContents aa, XML.toContents ab, XML.toContents ac])]
-
-{- handwritten -}
-instance XML.HTypeable a => XML.HTypeable (P.Palette a) where
-    toHType p = XML.Defined "Palette" [XML.toHType a] [XML.Constr "Palette" [] []]
-              where (P.Palette ((_,(_,Just a)):_)) = p
-instance XML.XmlContent a => XML.XmlContent (P.Palette a) where
-    toContents (P.Palette xs) =
-        [ XML.mkElemC "Palette" (concatMap XML.toContents xs) ]
-    parseContents = do
-        { XML.inElement "Palette" $ fmap P.Palette (XML.many1 XML.parseContents) }
 
 ---------------------------------------------------------
 -- Internal type isomorphic to (index,value) pairs
