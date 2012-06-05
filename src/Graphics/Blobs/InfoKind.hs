@@ -5,8 +5,9 @@
 module Graphics.Blobs.InfoKind where
 
 import Text.Parse
---import Text.XML.HaXml.XmlContent
 import Text.XML.HaXml.XmlContent.Haskell
+import Graphics.UI.WX
+import Graphics.Blobs.CommonIO
 
 -- | The @InfoKind@ class is a predicate that ensures we can always create
 --   at least a blank (empty) information element, that we can read and
@@ -18,11 +19,19 @@ class (Eq a, Show a, Parse a, XmlContent a) => InfoKind a g | a -> g where
     check :: String -> g -> a -> [String]		-- returns warnings
 	-- ^ first arg is container label for error reporting.
 	--   second arg is global value
+    editDialog :: Window a1 -- ^ Parent frame
+                  -> String -- ^ Window title
+                  -> a      -- ^ Existing value
+                  -> IO (Maybe a) -- ^ Updated value if changed
+
 
 -- A basic instance representing "no info"
 instance InfoKind () () where
     blank = ()
     check _ _ () = []
+    editDialog parentWindow dialogTitle initial = aTextDialog parentWindow dialogTitle initial
+
+
 -- Assume that info is mandatory, but not supplied a priori.
 instance InfoKind a b => InfoKind (Maybe a) b where
     blank = Nothing

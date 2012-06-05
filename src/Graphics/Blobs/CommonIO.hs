@@ -1,14 +1,15 @@
 module Graphics.Blobs.CommonIO where
 
-import Graphics.Blobs.Math
+import Data.Char
+import Data.List(elemIndex)
 import Graphics.Blobs.Common(ifJust, internalError, tabDelimited, safeIndex, systemGrey)
+import Graphics.Blobs.Math
 import Graphics.Blobs.SafetyNet
-
 import Graphics.UI.WX
 import Graphics.UI.WXCore
-import Data.List(elemIndex)
 import System.Directory
 import System.IO
+import Text.Parse
 
 ignoreResult :: IO a -> IO ()
 ignoreResult action = do { action; return () }
@@ -337,3 +338,25 @@ bootstrapUI fIO =
  do { fixIO fIO
     ; return ()
     }
+
+-- ---------------------------------------------------------------------
+
+aTextDialog parentWindow dialogTitle initial = do
+  result <- myTextDialog parentWindow MultiLine dialogTitle (show initial) True
+  case result of
+    Just str ->
+      case runParser parse str of
+        (Right x, s) ->
+          do{ when (not (null s || all isSpace s)) $
+                  (errorDialog parentWindow "Edit warning"
+                        ("Excess text after parsed value."
+                         ++"\nRemaining text: "++s))
+              ; return (Just x);
+            }
+        (Left err, s) -> do
+          errorDialog parentWindow "Edit warning"
+            ("Cannot parse entered text."
+             ++"\nReason: "++err
+             ++"\nRemaining text: "++s)
+          return Nothing
+    Nothing -> return Nothing

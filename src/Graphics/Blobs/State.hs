@@ -14,11 +14,12 @@ module Graphics.Blobs.State
 
 import Graphics.Blobs.Document
 import Graphics.Blobs.Math
-import qualified Graphics.Blobs.PersistentDocument as PD
-import qualified Graphics.Blobs.DisplayOptions as DisplayOptions
-
 import Graphics.UI.WX
 import Graphics.UI.WXCore hiding (Document, ToolWindow)
+import qualified Graphics.Blobs.DisplayOptions as DisplayOptions
+import qualified Graphics.Blobs.PersistentDocument as PD
+
+-- ---------------------------------------------------------------------
 
 type State g n e = Var (StateRecord g n e)
 
@@ -28,8 +29,8 @@ data StateRecord g n e = St
     , stNetworkFrame    :: Frame ()
     , stCanvas          :: ScrolledWindow ()
     , stPageSetupDialog :: PageSetupDialog ()
-    --, stNodeEditDialog  :: NodeEditDialog ()
-    --, stEdgeEditDialog  :: EditEditDialog ()
+    -- , stNodeEditDialog  :: (EditDialog n) ()
+    -- , stEdgeEditDialog  :: (EditDialog e) ()
     , stDisplayOptions  :: DisplayOptions.DisplayOptions
     }
 
@@ -51,6 +52,7 @@ empty =
         , stDisplayOptions  = DisplayOptions.standard
         })
     }
+
 
 -- Getters
 

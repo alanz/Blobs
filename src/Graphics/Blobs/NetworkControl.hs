@@ -31,7 +31,6 @@ import Text.Parse
 import Data.Char (isSpace)
 
 import Graphics.UI.WX hiding (Selection)
---import Graphics.UI.WXCore
 
 changeNamePosition :: Bool -> State g n e -> IO ()
 changeNamePosition above state =
@@ -493,31 +492,23 @@ reinfoNodeOrEdgeUser theFrame state =
     ; case getSelection doc of
         NodeSelection nodeNr ->
           do{ let oldInfo = getNodeInfo network nodeNr
-            ; result <- myTextDialog theFrame MultiLine
-                                     "Edit node info" (show oldInfo) True
-            ; ifJust result $ \newInfo ->
-                  -- do repaintAll state -- Until we sort out the parser
-                  case runParser parse newInfo of
-                    (Right x, s) ->
-                        do{ when (not (null s || all isSpace s)) $
-                                errorDialog theFrame "Edit warning"
-                                      ("Excess text after parsed value."
-                                      ++"\nRemaining text: "++s)
-                          ; case check (getNodeName network nodeNr)
-                                       (getGlobalInfo network) x of
-                              [] -> return ()
-                              e  -> errorDialog theFrame "Validity warning"
-                                        ("Validity check fails:\n"
-                                        ++unlines e)
-                          ; PD.updateDocument "edit node info"
-                              (updateNetwork
-                                (updateNode nodeNr (setInfo x))) pDoc
-                          ; repaintAll state
-                          }
-                    (Left err, s) -> errorDialog theFrame "Edit warning"
-                                          ("Cannot parse entered text."
-                                          ++"\nReason: "++err
-                                          ++"\nRemaining text: "++s)
+            ; result <- editDialog theFrame "Edit node info" oldInfo
+            -- ; result <- myTextDialog theFrame MultiLine
+            --                          "Edit node info" (show oldInfo) True
+            ; case result of
+              Just newInfo ->
+                do {
+                  case check (getNodeName network nodeNr)
+                       (getGlobalInfo network) newInfo of
+                    [] -> return ()
+                    e  -> errorDialog theFrame "Validity warning"
+                           ("Validity check fails:\n"
+                            ++unlines e)
+                  ; PD.updateDocument "edit node info"
+                        (updateNetwork
+                         (updateNode nodeNr (setInfo newInfo))) pDoc
+                  ; repaintAll state
+                  }
             }
         EdgeSelection edgeNr ->
           do{ let oldInfo = getEdgeInfo (getEdge edgeNr network)
