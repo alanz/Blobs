@@ -21,7 +21,7 @@ import Graphics.Blobs.Constants
 
 import Text.XML.HaXml.Types
 import qualified Text.XML.HaXml.XmlContent.Haskell as XML
-import List(isPrefixOf)
+import Data.List(isPrefixOf)
 
 data Shape =
     Circle  { shapeStyle :: ShapeStyle, shapeRadius :: Double }
@@ -198,7 +198,7 @@ instance XML.HTypeable Shape where
         (Composite ag) = v
 instance XML.XmlContent Shape where
     parseContents = do
-        { e@(Elem t _ _) <- XML.element  ["Circle","Polygon","Lines","Composite"]
+        { e@(Elem (N t) _ _) <- XML.element  ["Circle","Polygon","Lines","Composite"]
         ; case t of
           _ | "Polygon" `isPrefixOf` t -> XML.interior e $
                 do { ac <- XML.parseContents

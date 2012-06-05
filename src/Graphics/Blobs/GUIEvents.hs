@@ -1,6 +1,6 @@
 module Graphics.Blobs.GUIEvents where
 
-import List (nub,(\\))
+import Data.List (nub,(\\))
 import Graphics.Blobs.NetworkView(clickedNode, clickedEdge, clickedVia)
 import Graphics.Blobs.NetworkControl
 import Graphics.Blobs.State

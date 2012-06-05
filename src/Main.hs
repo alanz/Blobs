@@ -11,8 +11,8 @@ import Graphics.Blobs.Network
 import Graphics.Blobs.Operations
 --import IntMap (IntMap)
 import qualified Data.IntMap as IntMap
-import List (nub)
-import Maybe (fromJust)
+import Data.List (nub)
+import Data.Maybe (fromJust)
 
 main :: IO ()
 main = start $

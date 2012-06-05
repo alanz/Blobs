@@ -18,7 +18,7 @@ import Graphics.Blobs.Math
 import Graphics.UI.WX as WX hiding (Vector)
 import Graphics.UI.WXCore hiding (Document, screenPPI, Colour)
 -- import Graphics.UI.WXCore.Draw
-import Maybe
+import Data.Maybe
 import qualified Graphics.Blobs.Shape as Shape
 import Graphics.Blobs.DisplayOptions
 import Graphics.Blobs.InfoKind

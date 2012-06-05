@@ -1,7 +1,6 @@
 module Graphics.Blobs.Palette where
 
-import List (nub, (\\))
--- import qualified Graphics.Blobs.Shape as Shape
+import Data.List (nub, (\\))
 import qualified Graphics.Blobs.Shape as Shape
 import Text.Parse
 

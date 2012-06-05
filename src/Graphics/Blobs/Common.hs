@@ -3,9 +3,9 @@ module Graphics.Blobs.Common (module Graphics.Blobs.Common {-, module IOExts-}, 
 import Graphics.Blobs.Colors
 import Debug.Trace (trace)
 import qualified Data.IntMap as IntMap
-import Char(isSpace)
+import Data.Char(isSpace)
 import GHC.Float(formatRealFloat, FFFormat(FFFixed))
-import List
+import Data.List
 
 -- | return a list of all cartesian products for a list of lists
 --   e.g. products [[1,2],[3,4]] = [[1,3],[1,4],[2,3],[2,4]]

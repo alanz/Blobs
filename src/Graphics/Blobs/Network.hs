@@ -69,8 +69,8 @@ import Text.XML.HaXml.Combinators (replaceAttrs)
 import Text.XML.HaXml.Types
 import Text.XML.HaXml.Verbatim
 import qualified Text.XML.HaXml.XmlContent.Haskell as XML
-import List(nub)
-import Monad(when)
+import Data.List(nub)
+import Control.Monad(when)
 
 data Network g n e = Network
     { networkNodes      :: !(IntMap.IntMap (Node n)) -- ^ maps node numbers to nodes
@@ -604,7 +604,7 @@ instance (XML.HTypeable g, XML.HTypeable n, XML.HTypeable e)
 instance (InfoKind n g, InfoKind e g, XML.XmlContent g) =>
          XML.XmlContent (Network g n e) where
     toContents network =
-        [XML.CElem (XML.Elem "Network" []
+        [XML.CElem (XML.Elem (N "Network") []
                    [ simpleString  "Width"     (show width)
                    , simpleString  "Height"    (show height)
                    , makeTag       "Info"      (XML.toContents netInfo)
@@ -635,11 +635,12 @@ instance (InfoKind n g, InfoKind e g, XML.XmlContent g) =>
         }
 
 
-peekAttributes :: String -> XML.XMLParser [(String,AttValue)]
+peekAttributes :: String -> XML.XMLParser [(QName,AttValue)]
 peekAttributes t =
     do{ (p, e@(Elem _ as _)) <- XML.posnElement [t]
       ; XML.reparse [CElem e p]
       ; return as
+      --; return fmap (\(N a,[Right v]) -> (a,v)) as
       }
 
 instance XML.HTypeable (AssocN n) where
@@ -648,7 +649,7 @@ instance (InfoKind n g) => XML.XmlContent (AssocN n) where
     toContents (AssocN n node) =
         concatMap (replaceAttrs [("id",'N':show n)]) (XML.toContents node)
     parseContents = do
-        { [("id",n)] <- peekAttributes "Node"
+        { [(N "id",n)] <- peekAttributes "Node"
         ; n' <- num n
         ; node <- XML.parseContents
         ; return (AssocN n' node)
@@ -662,7 +663,7 @@ instance (InfoKind e g) => XML.XmlContent (AssocE e) where
     toContents (AssocE n edge) =
         concatMap (replaceAttrs [("id",'E':show n)]) (XML.toContents edge)
     parseContents = do
-        { [("id",n)] <- peekAttributes "Edge"
+        { [(N "id",n)] <- peekAttributes "Edge"
         ; n' <- num n
         ; edge <- XML.parseContents
         ; return (AssocE n' edge)

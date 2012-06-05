@@ -70,6 +70,10 @@ edge edgeNr theFrame mousepoint state =
         [ text := "Edit info (i)"
         , on command := safetyNet theFrame $ reinfoNodeOrEdge theFrame state
         ]
+    ; menuItem contextMenu
+        [ text := "Edit info userfunc (u)"
+        , on command := safetyNet theFrame $ reinfoNodeOrEdgeUser theFrame state
+        ]
     ; menuLine contextMenu
     ; menuItem contextMenu
         [ text := "from port "++show fromPort
@@ -117,6 +121,10 @@ node nodeNr theFrame state =
     ; menuItem contextMenu
         [ text := "Edit info (i)"
         , on command := safetyNet theFrame $ reinfoNodeOrEdge theFrame state
+        ]
+    ; menuItem contextMenu
+        [ text := "Edit info userfunc (u)"
+        , on command := safetyNet theFrame $ reinfoNodeOrEdgeUser theFrame state
         ]
     ; menuItem contextMenu
         [ text := "Change arity (in/"++show i++", out/"++show o++")"

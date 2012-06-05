@@ -27,7 +27,7 @@ import Graphics.UI.WX(Point, point, pointX, pointY)
 import Text.Parse
 
 import qualified Text.XML.HaXml.XmlContent.Haskell as XML
-import Char
+import Data.Char
 import Text.XML.HaXml.Escape
 import Text.XML.HaXml.Types
 
@@ -140,22 +140,22 @@ instance XML.XmlContent DoublePoint where
 
 -- Abbreviations
 makeTag :: String -> [XML.Content i] -> XML.Content i
-makeTag tagName children = XML.CElem (XML.Elem tagName [] children) undefined
+makeTag tagName children = XML.CElem (XML.Elem (N tagName) [] children) undefined
 
 tagWithId :: String -> String -> [XML.Content i] -> XML.Content i
 tagWithId tagName identity children =
-    XML.CElem (XML.Elem tagName [("id", XML.AttValue [Left identity])] children) undefined
+    XML.CElem (XML.Elem (N tagName) [(N "id", XML.AttValue [Left identity])] children) undefined
 
 -- | A simple string contains no spaces or unsafe characters
 simpleString :: String -> String -> XML.Content i
 simpleString tag value =
-    XML.CElem (XML.Elem tag [] [ XML.CString False value undefined ]) undefined
+    XML.CElem (XML.Elem (N tag) [] [ XML.CString False value undefined ]) undefined
 
 -- | The string value may contain spaces and unsafe characters
 escapeString :: String -> String -> XML.Content i
 escapeString key value =
     XML.CElem ((if isSafe value then id else escape) $
-             XML.Elem key [] [ XML.CString (any isSpace value) value undefined ])
+             XML.Elem (N key) [] [ XML.CString (any isSpace value) value undefined ])
           undefined
   where
     isSafe cs = all isSafeChar cs

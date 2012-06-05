@@ -6,7 +6,7 @@ import Graphics.Blobs.SafetyNet
 
 import Graphics.UI.WX
 import Graphics.UI.WXCore
-import List(elemIndex)
+import Data.List(elemIndex)
 import System.Directory
 import System.IO
 

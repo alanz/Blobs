@@ -57,7 +57,7 @@ module Graphics.Blobs.PersistentDocument
 
 --import IOExts(IORef, newIORef, writeIORef, readIORef)
 import Data.IORef(IORef, newIORef, writeIORef, readIORef)
-import Monad(when)
+import Control.Monad(when)
 
 -- | A persistent document is a mutable variable. This way functions
 --   operating on a document do not have to return the new value but

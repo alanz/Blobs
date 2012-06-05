@@ -10,7 +10,7 @@ module Graphics.Blobs.NetworkControl
     , deleteSelection
     , changeNamePosition
     , changeNodeShape
-    , renameNode, reinfoNodeOrEdge
+    , renameNode, reinfoNodeOrEdge, reinfoNodeOrEdgeUser
     , reArityNode
     , changeGlobalInfo
     ) where
@@ -28,7 +28,7 @@ import qualified Graphics.Blobs.PersistentDocument as PD
 import Graphics.Blobs.InfoKind
 import Graphics.Blobs.Palette (shapes)
 import Text.Parse
-import Char (isSpace)
+import Data.Char (isSpace)
 
 import Graphics.UI.WX hiding (Selection)
 --import Graphics.UI.WXCore
@@ -483,6 +483,73 @@ reinfoNodeOrEdge theFrame state =
             }
         _ -> return ()
     }
+
+reinfoNodeOrEdgeUser :: (InfoKind n g, InfoKind e g) =>
+                    Frame () -> State g n e -> IO ()
+reinfoNodeOrEdgeUser theFrame state =
+  do{ pDoc <- getDocument state
+    ; doc <- PD.getDocument pDoc
+    ; let network = getNetwork doc
+    ; case getSelection doc of
+        NodeSelection nodeNr ->
+          do{ let oldInfo = getNodeInfo network nodeNr
+            ; result <- myTextDialog theFrame MultiLine
+                                     "Edit node info" (show oldInfo) True
+            ; ifJust result $ \newInfo ->
+                  -- do repaintAll state -- Until we sort out the parser
+                  case runParser parse newInfo of
+                    (Right x, s) ->
+                        do{ when (not (null s || all isSpace s)) $
+                                errorDialog theFrame "Edit warning"
+                                      ("Excess text after parsed value."
+                                      ++"\nRemaining text: "++s)
+                          ; case check (getNodeName network nodeNr)
+                                       (getGlobalInfo network) x of
+                              [] -> return ()
+                              e  -> errorDialog theFrame "Validity warning"
+                                        ("Validity check fails:\n"
+                                        ++unlines e)
+                          ; PD.updateDocument "edit node info"
+                              (updateNetwork
+                                (updateNode nodeNr (setInfo x))) pDoc
+                          ; repaintAll state
+                          }
+                    (Left err, s) -> errorDialog theFrame "Edit warning"
+                                          ("Cannot parse entered text."
+                                          ++"\nReason: "++err
+                                          ++"\nRemaining text: "++s)
+            }
+        EdgeSelection edgeNr ->
+          do{ let oldInfo = getEdgeInfo (getEdge edgeNr network)
+            ; result <- myTextDialog theFrame MultiLine
+                                     "Edit edge info" (show oldInfo) True
+            ; ifJust result $ \newInfo ->
+                  -- do repaintAll state -- Until we sort out the parser
+                  case runParser parse newInfo of
+                    (Right x, s) ->
+                        do{ when (not (null s || all isSpace s)) $
+                                errorDialog theFrame "Edit warning"
+                                      ("Excess text after parsed value."
+                                      ++"\nRemaining text: "++s)
+                          ; case check "edge"
+                                       (getGlobalInfo network) x of
+                              [] -> return ()
+                              e  -> errorDialog theFrame "Validity warning"
+                                        ("Validity check fails:\n"
+                                        ++unlines e)
+                          ; PD.updateDocument "edit edge info"
+                              (updateNetwork
+                                (updateEdge edgeNr (setEdgeInfo x))) pDoc
+                          ; repaintAll state
+                          }
+                    (Left err, s) -> errorDialog theFrame "Edit warning"
+                                          ("Cannot parse entered text."
+                                          ++"\nReason: "++err
+                                          ++"\nRemaining text: "++s)
+            }
+        _ -> return ()
+    }
+
 
 changeGlobalInfo :: (Show g, Parse g, Descriptor g) =>
                     Frame () -> State g n e -> IO ()

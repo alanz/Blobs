@@ -1,6 +1,6 @@
 module Graphics.Blobs.DisplayOptions where
 
-import List ((\\))
+import Data.List ((\\))
 
 type ShowInfo = [What]
 data What     = GlobalInfo | NodeLabel | NodeInfo | EdgeInfo	deriving (Eq)
