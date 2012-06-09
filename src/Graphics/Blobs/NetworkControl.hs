@@ -509,6 +509,8 @@ reinfoNodeOrEdgeUser theFrame state =
                          (updateNode nodeNr (setInfo newInfo))) pDoc
                   ; repaintAll state
                   }
+              Nothing ->
+                return ()
             }
         EdgeSelection edgeNr ->
           do{ let oldInfo = getEdgeInfo (getEdge edgeNr network)
