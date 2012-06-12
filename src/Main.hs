@@ -27,11 +27,24 @@ instance InfoKind Int () where
     blank = 0
     check n _ i | i<0 = ["Number should not be negative in "++n]
                 | otherwise = []
-    editDialog = aTextDialog
 instance InfoKind [Int] () where
     blank = []
     check _ _ _ = []
+    -- editDialog = aTextDialog
+
+instance Descriptor [Int] where
+  descriptor xs = "[Int]=" ++ (show xs)
+
+instance Descriptor Int where
+  descriptor x = "Int=" ++ (show x)
+
+instance GuiEdit [Int] where
     editDialog = aTextDialog
+
+instance GuiEdit Int where
+    editDialog = aTextDialog
+
+
 
 -- A simple range of operations on a graph network.
 graphOps :: GraphOps () [Int] [Int]

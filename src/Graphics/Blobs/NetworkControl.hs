@@ -544,9 +544,52 @@ reinfoNodeOrEdgeUser theFrame state =
     }
 
 
-changeGlobalInfo :: (Show g, Parse g, Descriptor g) =>
+changeGlobalInfo :: (Show g, Parse g, Descriptor g, GuiEdit g) =>
                     Frame () -> State g n e -> IO ()
 changeGlobalInfo theFrame state =
+  do{ pDoc <- getDocument state
+    ; doc <- PD.getDocument pDoc
+    ; let network = getNetwork doc
+          info    = getGlobalInfo network
+    -- ; result <- editGlobalInfo theFrame ("Edit "++descriptor info) info
+    ; result <- editDialog theFrame ("Edit "++descriptor info) info
+    ; ifJust result $ \newInfo->
+                  do {
+                    PD.updateDocument ("edit "++descriptor info)
+                      (updateNetwork (setGlobalInfo newInfo)) pDoc
+                  ; repaintAll state	-- no visible change?
+                  }
+    }
+
+editGlobalInfo :: (Show g, Parse g, Descriptor g) =>
+                    Frame () -> String -> g -> IO (Maybe g)
+editGlobalInfo theFrame _title info =
+  do{ result <- myTextDialog theFrame MultiLine ("Edit "++descriptor info)
+                             (show info) True
+    ; case result of
+        Just newInfo->
+          case runParser parse newInfo of
+            (Right x, s) ->
+              do{ when (not (null s || all isSpace s)) $
+                  errorDialog theFrame "Edit warning"
+                              ("Excess text after parsed value."
+                              ++"\nRemaining text: "++s)
+                ; return (Just x)
+                }
+            (Left err, s) -> do { errorDialog theFrame "Edit warning"
+                                    ("Cannot parse entered text."
+                                     ++"\nReason: "++err
+                                     ++"\nRemaining text: "++s)
+                                ; return Nothing
+                                }
+        Nothing -> return Nothing
+    }
+
+-- ---------------------------------------------------------------------
+
+changeGlobalInfo' :: (Show g, Parse g, Descriptor g) =>
+                    Frame () -> State g n e -> IO ()
+changeGlobalInfo' theFrame state =
   do{ pDoc <- getDocument state
     ; doc <- PD.getDocument pDoc
     ; let network = getNetwork doc
