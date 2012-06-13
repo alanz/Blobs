@@ -514,6 +514,22 @@ reinfoNodeOrEdgeUser theFrame state =
             }
         EdgeSelection edgeNr ->
           do{ let oldInfo = getEdgeInfo (getEdge edgeNr network)
+            ; result <- editDialog theFrame "Edit edge info" oldInfo
+            ; ifJust result $ \newInfo ->
+                       do { case check "edge"
+                                       (getGlobalInfo network) newInfo of
+                              [] -> return ()
+                              e  -> errorDialog theFrame "Validity warning"
+                                        ("Validity check fails:\n"
+                                        ++unlines e)
+                          ; PD.updateDocument "edit edge info"
+                              (updateNetwork
+                                (updateEdge edgeNr (setEdgeInfo newInfo))) pDoc
+                          ; repaintAll state
+                          }
+            }
+              {-
+          do{ let oldInfo = getEdgeInfo (getEdge edgeNr network)
             ; result <- myTextDialog theFrame MultiLine
                                      "Edit edge info" (show oldInfo) True
             ; ifJust result $ \newInfo ->
@@ -540,9 +556,40 @@ reinfoNodeOrEdgeUser theFrame state =
                                           ++"\nReason: "++err
                                           ++"\nRemaining text: "++s)
             }
+-}
         _ -> return ()
     }
 
+-- ---------------------------------------------------------------------
+
+
+editEdgeInfo :: (Show g, Parse g, Descriptor g) =>
+                    Frame () -> String -> g -> IO (Maybe g)
+editEdgeInfo theFrame _title info =
+
+  do{ result <- myTextDialog theFrame MultiLine
+                "Edit edge info" (show info) True
+    ; case result of
+        Just newInfo ->
+          case runParser parse newInfo of
+                    (Right x, s) ->
+                        do{ when (not (null s || all isSpace s)) $
+                                errorDialog theFrame "Edit warning"
+                                      ("Excess text after parsed value."
+                                      ++"\nRemaining text: "++s)
+                          ; return (Just x)
+                          }
+                    (Left err, s) -> do { errorDialog theFrame "Edit warning"
+                                            ("Cannot parse entered text."
+                                            ++"\nReason: "++err
+                                            ++"\nRemaining text: "++s)
+                                        ; return Nothing
+                                        }
+        Nothing -> return Nothing
+
+    }
+
+-- ---------------------------------------------------------------------
 
 changeGlobalInfo :: (Show g, Parse g, Descriptor g, GuiEdit g) =>
                     Frame () -> State g n e -> IO ()
@@ -560,6 +607,8 @@ changeGlobalInfo theFrame state =
                   ; repaintAll state	-- no visible change?
                   }
     }
+
+-- ---------------------------------------------------------------------
 
 editGlobalInfo :: (Show g, Parse g, Descriptor g) =>
                     Frame () -> String -> g -> IO (Maybe g)
@@ -585,32 +634,4 @@ editGlobalInfo theFrame _title info =
         Nothing -> return Nothing
     }
 
--- ---------------------------------------------------------------------
-
-changeGlobalInfo' :: (Show g, Parse g, Descriptor g) =>
-                    Frame () -> State g n e -> IO ()
-changeGlobalInfo' theFrame state =
-  do{ pDoc <- getDocument state
-    ; doc <- PD.getDocument pDoc
-    ; let network = getNetwork doc
-          info    = getGlobalInfo network
-    ; result <- myTextDialog theFrame MultiLine ("Edit "++descriptor info)
-                             (show info) True
-    ; ifJust result $ \newInfo->
-                        --do repaintAll state -- Until we sort out the parser
-          case runParser parse newInfo of
-            (Right x, s) ->
-                do{ when (not (null s || all isSpace s)) $
-                        errorDialog theFrame "Edit warning"
-                              ("Excess text after parsed value."
-                              ++"\nRemaining text: "++s)
-                  ; PD.updateDocument ("edit "++descriptor info)
-                      (updateNetwork (setGlobalInfo x)) pDoc
-                  ; repaintAll state	-- no visible change?
-                  }
-            (Left err, s) -> errorDialog theFrame "Edit warning"
-                                  ("Cannot parse entered text."
-                                  ++"\nReason: "++err
-                                  ++"\nRemaining text: "++s)
-    }
-
+-- EOF
