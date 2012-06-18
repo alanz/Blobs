@@ -488,11 +488,12 @@ reinfoNodeOrEdgeUser :: (InfoKind n g, InfoKind e g) =>
 reinfoNodeOrEdgeUser theFrame state =
   do{ pDoc <- getDocument state
     ; doc <- PD.getDocument pDoc
-    ; let network = getNetwork doc
+    ; let network    = getNetwork doc
+          globalInfo = getGlobalInfo network
     ; case getSelection doc of
         NodeSelection nodeNr ->
           do{ let oldInfo = getNodeInfo network nodeNr
-            ; result <- editDialog theFrame "Edit node info" oldInfo
+            ; result <- editDialogWithGlobal theFrame "Edit node info" oldInfo globalInfo
             -- ; result <- myTextDialog theFrame MultiLine
             --                          "Edit node info" (show oldInfo) True
             ; case result of
@@ -514,7 +515,7 @@ reinfoNodeOrEdgeUser theFrame state =
             }
         EdgeSelection edgeNr ->
           do{ let oldInfo = getEdgeInfo (getEdge edgeNr network)
-            ; result <- editDialog theFrame "Edit edge info" oldInfo
+            ; result <- editDialogWithGlobal theFrame "Edit edge info" oldInfo globalInfo
             ; ifJust result $ \newInfo ->
                        do { case check "edge"
                                        (getGlobalInfo network) newInfo of

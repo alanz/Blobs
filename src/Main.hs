@@ -41,10 +41,15 @@ instance Descriptor Int where
 instance GuiEdit [Int] where
     editDialog = aTextDialog
 
+instance GuiGlobalEdit [Int] () where
+  editDialogWithGlobal parentWindow dialogTitle initial global = aTextDialog parentWindow dialogTitle initial
+
+
 instance GuiEdit Int where
     editDialog = aTextDialog
 
-
+instance GuiGlobalEdit Int () where
+  editDialogWithGlobal parentWindow dialogTitle initial global = aTextDialog parentWindow dialogTitle initial
 
 -- A simple range of operations on a graph network.
 graphOps :: GraphOps () [Int] [Int]

@@ -14,17 +14,12 @@ import Graphics.Blobs.CommonIO
 --   write them to/from the user, and that there exists some method of
 --   determining the correctness of the value (completeness/consistency etc)
 --   against some global type.
-class (Eq a, Show a, Parse a, XmlContent a, GuiEdit a, GuiEdit g) => InfoKind a g | a -> g where
+class (Eq a, Show a, Parse a, XmlContent a, GuiEdit a, GuiEdit g, GuiGlobalEdit a g) =>
+      InfoKind a g | a -> g where
     blank :: a
     check :: String -> g -> a -> [String]		-- returns warnings
 	-- ^ first arg is container label for error reporting.
 	--   second arg is global value
-    {-
-    editDialog :: Window a1 -- ^ Parent frame
-                  -> String -- ^ Window title
-                  -> a      -- ^ Existing value
-                  -> IO (Maybe a) -- ^ Updated value if changed
-    -}
 
 
 -- A basic instance representing "no info"
@@ -34,6 +29,9 @@ instance InfoKind () () where
 
 instance GuiEdit () where
     editDialog parentWindow dialogTitle initial = aTextDialog parentWindow dialogTitle initial
+
+instance GuiGlobalEdit () g where
+    editDialogWithGlobal parentWindow dialogTitle initial global = aTextDialog parentWindow dialogTitle initial
 
 
 -- Assume that info is mandatory, but not supplied a priori.
@@ -48,6 +46,9 @@ instance Descriptor a => Descriptor (Maybe a) where
 
 instance (Show a,Parse a, Descriptor a) => GuiEdit (Maybe a) where
   editDialog a = undefined
+
+instance (Show a,Parse a, Descriptor a) => GuiGlobalEdit (Maybe a) b where
+  editDialogWithGlobal a b = undefined
 
 
 
@@ -64,11 +65,19 @@ instance Descriptor () where
 -- A class of things that can be edited in a GUI, falling back to a
 -- simple text editor using Parse/Show
 class (Show a,Parse a,Descriptor a) => GuiEdit a where
--- class GuiEdit a where
     editDialog :: Window a1 -- ^ Parent frame
                   -> String -- ^ Window title
                   -> a      -- ^ Existing value
                   -> IO (Maybe a) -- ^ Updated value if changed
+
+-- A class of things that can be edited in a GUI, falling back to a
+-- simple text editor using Parse/Show
+class (Show a,Parse a,Descriptor a) => GuiGlobalEdit a g where
+    editDialogWithGlobal :: Window a1 -- ^ Parent frame
+                            -> String -- ^ Window title
+                            -> a      -- ^ Existing value
+                            -> g      -- ^ Global value, for reference
+                            -> IO (Maybe a) -- ^ Updated value if changed
 
 
 -- -----------------------------------------------
