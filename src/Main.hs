@@ -30,23 +30,15 @@ instance InfoKind Int () where
 instance InfoKind [Int] () where
     blank = []
     check _ _ _ = []
-    -- editDialog = aTextDialog
 
 instance Descriptor [Int] where
-  descriptor xs = "[Int]=" ++ (show xs)
+  descriptor xs = {- "[Int]=" ++ -} (show xs)
 
 instance Descriptor Int where
   descriptor x = "Int=" ++ (show x)
 
-instance GuiEdit [Int] where
-    editDialog = aTextDialog
-
 instance GuiGlobalEdit [Int] () where
   editDialogWithGlobal parentWindow dialogTitle initial global = aTextDialog parentWindow dialogTitle initial
-
-
-instance GuiEdit Int where
-    editDialog = aTextDialog
 
 instance GuiGlobalEdit Int () where
   editDialogWithGlobal parentWindow dialogTitle initial global = aTextDialog parentWindow dialogTitle initial
