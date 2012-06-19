@@ -14,7 +14,7 @@ import Graphics.Blobs.CommonIO
 --   write them to/from the user, and that there exists some method of
 --   determining the correctness of the value (completeness/consistency etc)
 --   against some global type.
-class (Eq a, Show a, Parse a, XmlContent a, GuiEdit a, GuiEdit g, GuiGlobalEdit a g) =>
+class (Eq a, Show a, Parse a, XmlContent a, XmlContent g, {- GuiEdit a,-} GuiEdit g, GuiGlobalEdit a g) =>
       InfoKind a g | a -> g where
     blank :: a
     check :: String -> g -> a -> [String]		-- returns warnings
@@ -31,7 +31,7 @@ instance GuiEdit () where
     editDialog parentWindow dialogTitle initial = aTextDialog parentWindow dialogTitle initial
 
 instance GuiGlobalEdit () g where
-    editDialogWithGlobal parentWindow dialogTitle initial global = aTextDialog parentWindow dialogTitle initial
+    editDialogWithGlobal parentWindow dialogTitle initial _global = aTextDialog parentWindow dialogTitle initial
 
 
 -- Assume that info is mandatory, but not supplied a priori.
@@ -44,12 +44,14 @@ instance Descriptor a => Descriptor (Maybe a) where
   descriptor Nothing  =  "Nothing"
   descriptor (Just x) =  "Just (" ++ (descriptor x) ++ ")"
 
+{-
 instance (Show a,Parse a, Descriptor a) => GuiEdit (Maybe a) where
-  editDialog a = undefined
+  editDialog _a = undefined
+-}
+
 
 instance (Show a,Parse a, Descriptor a) => GuiGlobalEdit (Maybe a) b where
-  editDialogWithGlobal a b = undefined
-
+  editDialogWithGlobal _a _b = undefined
 
 
 -- A "showType"-style class.  Descriptor should always ignore its argument,
