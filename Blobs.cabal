@@ -64,7 +64,6 @@ library
                  , Graphics.Blobs.Shape
                  , Graphics.Blobs.State
                  , Graphics.Blobs.StateUtil
-                 -- , Graphics.Blobs.XTC
   -- other-modules:   Graphics.Blobs
   ghc-options:     -Wall -fno-warn-unused-do-bind
 
