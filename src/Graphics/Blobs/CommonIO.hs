@@ -341,6 +341,8 @@ bootstrapUI fIO =
 
 -- ---------------------------------------------------------------------
 
+aTextDialog :: (Show a, Parse a1) =>
+                Window a2 -> String -> a -> IO (Maybe a1)
 aTextDialog parentWindow dialogTitle initial = do
   result <- myTextDialog parentWindow MultiLine dialogTitle (show initial) True
   case result of
