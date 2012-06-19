@@ -67,7 +67,8 @@ reallyDrawCanvas doc ppi dc opt =
     ; let (width, _height) = Network.getCanvasSize network
     ; when (GlobalInfo `elem` dpShowInfo opt) $
            drawLabel 0 False
-                     (descriptor global++": "++(unwords.lines.show) global)
+                     -- (descriptor global++": "++(unwords.lines.show) global)
+                     (descriptor global)
                      (DoublePoint (width/2) 1) (Justify CentreJ TopJ)
                      [ textColor := wxcolor kNodeLabelColour ]
     -- draw edges, highlight the selected ones (if any)
