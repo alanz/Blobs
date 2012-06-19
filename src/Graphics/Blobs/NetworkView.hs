@@ -126,7 +126,7 @@ reallyDrawCanvas doc ppi dc opt =
                         (justif above) [ textColor := wxcolor kNodeLabelColour ]
 	-- draw info
         ; when (NodeInfo `elem` dpShowInfo opt) $
-              drawLabel (offset (not above)) False (show (Network.getInfo node))
+              drawLabel (offset (not above)) False (descriptor (Network.getInfo node))
                         center (justif (not above))
                         [ textColor := wxcolor kNodeInfoColour ]
         }
@@ -171,7 +171,7 @@ reallyDrawCanvas doc ppi dc opt =
         ; when (EdgeInfo `elem` dpShowInfo opt) $
            -- logicalTextRotated ppi dc (middle via) (show info) 45
            --           [ textColor := wxcolor kEdgeInfoColour ]
-              drawLabel 0 False (show (Network.getEdgeInfo edge)) (middle via)
+              drawLabel 0 False (descriptor (Network.getEdgeInfo edge)) (middle via)
                         (Justify CentreJ BottomJ)
                         [ textColor := wxcolor kEdgeInfoColour ]
         }
