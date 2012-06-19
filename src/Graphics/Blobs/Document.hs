@@ -18,13 +18,20 @@ module Graphics.Blobs.Document
 import qualified Graphics.Blobs.Network as Network
 import Graphics.Blobs.InfoKind
 import Graphics.Blobs.Math
+import qualified Data.Map as Map
+
 
 {--------------------------------------------------
  -- TYPES
  --------------------------------------------------}
 
+type PageId = String
+toPageId :: String -> PageId
+toPageId s = s
+
 data Document g n e = Document
-    { docNetwork        :: Network.Network g n e
+    { docNetwork        :: Map.Map PageId (Network.Network g n e)
+    , docCurrentNetwork :: PageId
     , docSelection      :: Selection
     } deriving Show
 
@@ -42,11 +49,13 @@ data Selection
  --------------------------------------------------}
 
 
+
 -- | An empty document
 empty :: (InfoKind e g, InfoKind n g) => g -> n -> e -> Document g n e
 empty g n e =
     Document
-    { docNetwork    = Network.empty g n e
+    { docNetwork    = Map.fromList [(toPageId "p1", Network.empty g n e)]
+    , docCurrentNetwork = toPageId "p1"
     , docSelection  = NoSelection
     }
 
@@ -57,7 +66,7 @@ empty g n e =
 getNetwork              :: Document g n e -> Network.Network g n e
 getSelection            :: Document g n e -> Selection
 
-getNetwork              doc = docNetwork doc
+getNetwork              doc = (docNetwork doc) Map.! (docCurrentNetwork doc)
 getSelection            doc = docSelection doc
 
 {--------------------------------------------------
@@ -68,7 +77,7 @@ getSelection            doc = docSelection doc
 --   in the new network
 setNetwork :: Network.Network g n e -> Document g n e -> Document g n e
 setNetwork theNetwork doc =
-    doc { docNetwork = theNetwork
+    doc { docNetwork = Map.insert (docCurrentNetwork doc) theNetwork (docNetwork doc)
         , docSelection = NoSelection
         }
 
@@ -91,4 +100,4 @@ updateNetworkEx networkFun doc =
 
 -- | Doesn't clear the selection
 unsafeSetNetwork :: Network.Network g n e -> Document g n e -> Document g n e
-unsafeSetNetwork theNetwork doc = doc { docNetwork = theNetwork }
+unsafeSetNetwork theNetwork doc = doc { docNetwork = Map.insert (docCurrentNetwork doc) theNetwork (docNetwork doc) }
