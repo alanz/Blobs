@@ -12,6 +12,8 @@ module Graphics.Blobs.Document
     , getNetwork,       setNetwork, unsafeSetNetwork
     , getSelection,     setSelection
 
+    , getNetworkSel, setNetworkAndSel, setNetworkSel
+
     , updateNetwork, updateNetworkEx
     ) where
 
@@ -25,13 +27,13 @@ import qualified Data.Map as Map
  -- TYPES
  --------------------------------------------------}
 
-type PageId = String
-toPageId :: String -> PageId
-toPageId s = s
+type NetworkId = String
+toNetworkId :: String -> NetworkId
+toNetworkId s = s
 
 data Document g n e = Document
-    { docNetwork        :: Map.Map PageId (Network.Network g n e)
-    , docCurrentNetwork :: PageId
+    { docNetwork        :: Map.Map NetworkId (Network.Network g n e)
+    , docNetworkSel     :: NetworkId -- ^Currently selected network
     , docSelection      :: Selection
     } deriving Show
 
@@ -54,8 +56,8 @@ data Selection
 empty :: (InfoKind e g, InfoKind n g) => g -> n -> e -> Document g n e
 empty g n e =
     Document
-    { docNetwork    = Map.fromList [(toPageId "p1", Network.empty g n e)]
-    , docCurrentNetwork = toPageId "p1"
+    { docNetwork    = Map.fromList [(toNetworkId "p1", Network.empty g n e)]
+    , docNetworkSel = toNetworkId "p1"
     , docSelection  = NoSelection
     }
 
@@ -65,9 +67,11 @@ empty g n e =
 
 getNetwork              :: Document g n e -> Network.Network g n e
 getSelection            :: Document g n e -> Selection
+getNetworkSel           :: Document g n e -> NetworkId
 
-getNetwork              doc = (docNetwork doc) Map.! (docCurrentNetwork doc)
+getNetwork              doc = (docNetwork doc) Map.! (docNetworkSel doc)
 getSelection            doc = docSelection doc
+getNetworkSel           doc = docNetworkSel doc
 
 {--------------------------------------------------
  -- SETTERS
@@ -77,9 +81,29 @@ getSelection            doc = docSelection doc
 --   in the new network
 setNetwork :: Network.Network g n e -> Document g n e -> Document g n e
 setNetwork theNetwork doc =
-    doc { docNetwork = Map.insert (docCurrentNetwork doc) theNetwork (docNetwork doc)
+    doc { docNetwork = Map.insert (docNetworkSel doc) theNetwork (docNetwork doc)
         , docSelection = NoSelection
         }
+
+-- | setNetworkAndSel clears the selection, and creates an empty new
+-- page if it does not currently exist
+setNetworkAndSel :: NetworkId -> Network.Network g n e -> Document g n e -> Document g n e
+setNetworkAndSel sel theNetwork doc =
+    doc { docNetwork   = Map.insert sel theNetwork (docNetwork doc)
+        , docSelection = NoSelection
+        }
+
+-- | setNetworkSel sets the network selector, and clones the currently
+-- selected network if the selector does not exist, and clears the selection
+setNetworkSel :: NetworkId -> Document g n e -> Document g n e
+setNetworkSel sel doc =
+    doc { docNetwork   = case Map.member sel (docNetwork doc) of
+                              True -> (docNetwork doc)
+                              False -> Map.insert sel (getNetwork doc) (docNetwork doc)
+        , docNetworkSel = sel
+        , docSelection = NoSelection
+        }
+
 
 setSelection :: Selection -> Document g n e -> Document g n e
 setSelection theSelection doc = doc { docSelection = theSelection }
@@ -100,4 +124,4 @@ updateNetworkEx networkFun doc =
 
 -- | Doesn't clear the selection
 unsafeSetNetwork :: Network.Network g n e -> Document g n e -> Document g n e
-unsafeSetNetwork theNetwork doc = doc { docNetwork = Map.insert (docCurrentNetwork doc) theNetwork (docNetwork doc) }
+unsafeSetNetwork theNetwork doc = doc { docNetwork = Map.insert (docNetworkSel doc) theNetwork (docNetwork doc) }

@@ -12,6 +12,7 @@ module Graphics.Blobs.NetworkControl
     , changeNodeShape
     , renameNode, reinfoNodeOrEdge, reinfoNodeOrEdgeUser
     , reArityNode
+    , levelDownNode, levelUpNode
     , changeGlobalInfo
     ) where
 
@@ -563,6 +564,32 @@ reinfoNodeOrEdgeUser theFrame state =
 
 -- ---------------------------------------------------------------------
 
+levelUpNode :: Frame () -> State g n e -> IO ()
+levelUpNode theFrame state = undefined
+
+levelDownNode :: Frame () -> State g n e -> IO ()
+levelDownNode theFrame state =
+  do{ pDoc <- getDocument state
+    ; doc <- PD.getDocument pDoc
+    ; let network = getNetwork doc
+    ; case getSelection doc of
+        NodeSelection nodeNr ->
+              do{ let nodeInfo = getNodeInfo network nodeNr
+                      oldNetworkId = "p2"
+                ; result <- myTextDialog theFrame SingleLine
+                                         "Id of child" (show oldNetworkId)
+                                         True
+                ; ifJust result $ \newSel ->
+                     do{ PD.updateDocument "change node child Id"
+                               (setNetworkSel newSel) pDoc
+                       ; repaintAll state
+                       }
+                }
+        _ -> return ()
+    }
+
+
+-- ---------------------------------------------------------------------
 
 editEdgeInfo :: (Show g, Parse g, Descriptor g) =>
                     Frame () -> String -> g -> IO (Maybe g)

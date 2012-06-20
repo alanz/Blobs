@@ -29,8 +29,6 @@ data StateRecord g n e = St
     , stNetworkFrame    :: Frame ()
     , stCanvas          :: ScrolledWindow ()
     , stPageSetupDialog :: PageSetupDialog ()
-    -- , stNodeEditDialog  :: (EditDialog n) ()
-    -- , stEdgeEditDialog  :: (EditDialog e) ()
     , stDisplayOptions  :: DisplayOptions.DisplayOptions
     }
 

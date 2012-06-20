@@ -136,6 +136,19 @@ node nodeNr theFrame state =
         ]
     ; menuLine contextMenu
 
+    -- Multi-level/nested/hierarchical editing
+    ; menuItem contextMenu
+        [ text := "Up"
+        , on command := safetyNet theFrame $ levelUpNode theFrame state
+        ]
+
+    ; menuItem contextMenu
+        [ text := "Down"
+        , on command := safetyNet theFrame $ levelDownNode theFrame state
+        ]
+
+    ; menuLine contextMenu
+
     ; menuItem contextMenu
         [ text := "Label position:" ]
     ; menuItem contextMenu

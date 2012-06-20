@@ -11,13 +11,11 @@ import Graphics.Blobs.CommonIO
 import qualified Graphics.Blobs.Network as Network
 import Graphics.Blobs.Document
 import Graphics.Blobs.Colors
--- import Graphics.Blobs.Common
 import Graphics.Blobs.Palette
 
 import Graphics.Blobs.Math
 import Graphics.UI.WX as WX hiding (Vector)
 import Graphics.UI.WXCore hiding (Document, screenPPI, Colour)
--- import Graphics.UI.WXCore.Draw
 import Data.Maybe
 import qualified Graphics.Blobs.Shape as Shape
 import Graphics.Blobs.DisplayOptions
