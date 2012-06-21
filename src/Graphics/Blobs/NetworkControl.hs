@@ -18,7 +18,7 @@ module Graphics.Blobs.NetworkControl
 
 import Graphics.Blobs.State
 import Graphics.Blobs.StateUtil
-import Graphics.Blobs.Network
+import Graphics.Blobs.Network as Network
 import Graphics.Blobs.NetworkView (edgeContains)
 import Graphics.Blobs.Document
 import Graphics.Blobs.Common
@@ -574,14 +574,21 @@ levelDownNode theFrame state =
     ; let network = getNetwork doc
     ; case getSelection doc of
         NodeSelection nodeNr ->
-              do{ let nodeInfo = getNodeInfo network nodeNr
+              do{ let nodeInfo     = getNodeInfo network nodeNr
                       oldNetworkId = "p2"
+                      newSel = toNetworkId "p3"
                 ; result <- myTextDialog theFrame SingleLine
                                          "Id of child" (show oldNetworkId)
                                          True
                 ; ifJust result $ \newSel ->
-                     do{ PD.updateDocument "change node child Id"
-                               (setNetworkSel newSel) pDoc
+                     do{
+                       let
+                          doc2 = setNetworkAndSel newSel (getEmptyNetwork doc) doc
+                          -- doc2 = setNetworkAndSel "p3" (getEmptyNetwork doc) doc
+                          -- doc2 = setNetwork (getEmptyNetwork doc) doc
+
+                       ; PD.setDocument "change node child Id"
+                               doc2 pDoc
                        ; repaintAll state
                        }
                 }

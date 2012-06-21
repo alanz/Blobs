@@ -8,8 +8,11 @@
 module Graphics.Blobs.Document
     ( Document
     , Selection(..)
+    , NetworkId(..)
+    , toNetworkId
     , empty
     , getNetwork,       setNetwork, unsafeSetNetwork
+    , getEmptyNetwork
     , getSelection,     setSelection
 
     , getNetworkSel, setNetworkAndSel, setNetworkSel
@@ -35,6 +38,7 @@ data Document g n e = Document
     { docNetwork        :: Map.Map NetworkId (Network.Network g n e)
     , docNetworkSel     :: NetworkId -- ^Currently selected network
     , docSelection      :: Selection
+    , docEmptyNetwork   :: Network.Network g n e
     } deriving Show
 
 data Selection
@@ -59,6 +63,7 @@ empty g n e =
     { docNetwork    = Map.fromList [(toNetworkId "p1", Network.empty g n e)]
     , docNetworkSel = toNetworkId "p1"
     , docSelection  = NoSelection
+    , docEmptyNetwork = Network.empty g n e
     }
 
 {--------------------------------------------------
@@ -66,10 +71,12 @@ empty g n e =
  --------------------------------------------------}
 
 getNetwork              :: Document g n e -> Network.Network g n e
+getEmptyNetwork         :: Document g n e -> Network.Network g n e
 getSelection            :: Document g n e -> Selection
 getNetworkSel           :: Document g n e -> NetworkId
 
 getNetwork              doc = (docNetwork doc) Map.! (docNetworkSel doc)
+getEmptyNetwork         doc = docEmptyNetwork doc
 getSelection            doc = docSelection doc
 getNetworkSel           doc = docNetworkSel doc
 
@@ -90,6 +97,7 @@ setNetwork theNetwork doc =
 setNetworkAndSel :: NetworkId -> Network.Network g n e -> Document g n e -> Document g n e
 setNetworkAndSel sel theNetwork doc =
     doc { docNetwork   = Map.insert sel theNetwork (docNetwork doc)
+        , docNetworkSel = sel
         , docSelection = NoSelection
         }
 
@@ -99,7 +107,7 @@ setNetworkSel :: NetworkId -> Document g n e -> Document g n e
 setNetworkSel sel doc =
     doc { docNetwork   = case Map.member sel (docNetwork doc) of
                               True -> (docNetwork doc)
-                              False -> Map.insert sel (getNetwork doc) (docNetwork doc)
+                              False -> Map.insert sel (docEmptyNetwork doc) (docNetwork doc)
         , docNetworkSel = sel
         , docSelection = NoSelection
         }
