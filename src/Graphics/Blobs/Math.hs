@@ -1,3 +1,6 @@
+{-# LANGUAGE DeriveDataTypeable #-}
+{-# LANGUAGE TemplateHaskell #-}
+
 module Graphics.Blobs.Math
     ( DoublePoint(..), Vector
     , doublePointX, doublePointY
@@ -15,26 +18,25 @@ module Graphics.Blobs.Math
     , enclosedInRectangle
 
     -- For XML I/O
-    , makeTag
-    , tagWithId
-    , simpleString
-    , escapeString
-    , comment
-    , commentEscape
+    -- , makeTag
+    -- , tagWithId
+    -- , simpleString
+    -- , escapeString
+    -- , comment
+    -- , commentEscape
     ) where
 
 import Graphics.UI.WX(Point, point, pointX, pointY)
 import Text.Parse
 
-import qualified Text.XML.HaXml.XmlContent.Haskell as XML
-import Data.Char
-import Text.XML.HaXml.Escape
-import Text.XML.HaXml.Types
+--import qualified Text.XML.HaXml.XmlContent.Haskell as XML
+import Data.Data
+import Data.Aeson.TH
 
 -- ---------------------------------------------------------------------
 
 data DoublePoint = DoublePoint !Double !Double
-    deriving (Show, Eq, Read)
+    deriving (Show, Eq, Read, Data, Typeable)
 
 instance Parse DoublePoint where
     parse = do { isWord "DoublePoint"
@@ -120,8 +122,11 @@ enclosedInRectangle (DoublePoint x y) (DoublePoint x0 y0) (DoublePoint x1 y1) =
     between i j k | j <= k    =  j <= i && i <= k
                   | otherwise =  k <= i && i <= j
 
+deriveJSON id ''DoublePoint
+
 -- ---------------------------------------------------------------------
 -- Moving orphan instances home
+{-
 instance XML.HTypeable DoublePoint where
     toHType _ = XML.Defined "DoublePoint" [] [XML.Constr "X" [] [], XML.Constr "Y" [] []]
 instance XML.XmlContent DoublePoint where
@@ -134,10 +139,11 @@ instance XML.XmlContent DoublePoint where
         ; y <- XML.inElement "Y" $ fmap read XML.text
         ; return (DoublePoint x y)
         }
-
+-}
 
 ---- UTILITY FUNCTIONS
 
+{-
 -- Abbreviations
 makeTag :: String -> [XML.Content i] -> XML.Content i
 makeTag tagName children = XML.CElem (XML.Elem (N tagName) [] children) undefined
@@ -173,4 +179,7 @@ commentEscape :: String -> String
 commentEscape [] = []
 commentEscape ('-':'-':'>':xs) = "==>" ++ commentEscape xs
 commentEscape (x:xs) = x : commentEscape xs
+-}
+
+-- EOF
 

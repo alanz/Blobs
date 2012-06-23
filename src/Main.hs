@@ -1,7 +1,10 @@
 {-# LANGUAGE FlexibleInstances #-}
 {-# LANGUAGE MultiParamTypeClasses #-}
+{-# LANGUAGE TemplateHaskell #-}
+
 module Main (main, gain) where
 
+import Data.Data
 import Data.List (nub)
 import Data.Maybe (fromJust)
 import Graphics.Blobs.CommonIO
@@ -12,6 +15,8 @@ import Graphics.UI.WX
 import qualified Data.IntMap as IntMap
 import qualified Graphics.Blobs.NetworkUI as NetworkUI
 import qualified Graphics.Blobs.State as State
+import qualified Graphics.Blobs.Palette as Palette
+import Data.Aeson
 
 main :: IO ()
 main = start $
@@ -30,6 +35,8 @@ instance InfoKind Int () where
 instance InfoKind [Int] () where
     blank = []
     check _ _ _ = []
+
+-- instance Data (Network () [Int] [Int]) where
 
 instance Descriptor [Int] where
   descriptor xs = {- "[Int]=" ++ -} (show xs)
@@ -72,3 +79,5 @@ accumulateIn :: IntMap.IntMap (Edge [Int]) -> NodeNr -> Node [Int] -> Node [Int]
 
 gain :: IO ()
 gain = main -- :-)
+
+

@@ -1,13 +1,16 @@
+{-# LANGUAGE DeriveDataTypeable #-}
+{-# LANGUAGE TemplateHaskell #-}
+
 module Graphics.Blobs.Colors where
 
+import Data.Data
 import Graphics.UI.WX
 import Text.Parse
-
-import qualified Text.XML.HaXml.XmlContent.Haskell as XML
+import Data.Aeson.TH
 
 
 -- Different spelling of colour/color to distinguish local/wx datatypes.
-data Colour = RGB !Int !Int !Int deriving (Eq,Show,Read)
+data Colour = RGB !Int !Int !Int deriving (Eq,Show,Read,Data,Typeable)
 
 
 instance Parse Colour where
@@ -87,10 +90,13 @@ orangeRed = RGB 255 69 0
 gold = RGB 255 215 0
 darkSlateGray = RGB 47 79 79
 
+deriveJSON id ''Colour
+
 -- ---------------------------------------------------------------------
 -- Migrating orphan instances home
 
 {- derived by DrIFT -}
+{-
 instance XML.HTypeable Colour where
     toHType v = XML.Defined "Colour" []
                    [XML.Constr "RGB" [] [XML.toHType aa,XML.toHType ab,XML.toHType ac]]
@@ -108,3 +114,4 @@ instance XML.XmlContent Colour where
         [XML.mkElemC (XML.showConstr 0 (XML.toHType v))
                  (concat [XML.toContents aa, XML.toContents ab, XML.toContents ac])]
 
+-}

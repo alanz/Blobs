@@ -1,4 +1,7 @@
 {-# LANGUAGE UndecidableInstances #-}
+{-# LANGUAGE DeriveDataTypeable #-}
+{-# LANGUAGE TemplateHaskell #-}
+
 module Graphics.Blobs.Network
     (
     -- * Types
@@ -55,22 +58,18 @@ module Graphics.Blobs.Network
     , getEdgeFromPort, getEdgeToPort
     , setEdgeFromPort, setEdgeToPort
 
+    , networkValid
+
     ) where
 
+import Data.Data
 import Graphics.Blobs.Common
-import Graphics.Blobs.Math
 import Graphics.Blobs.InfoKind
-import qualified Graphics.Blobs.Shape as Shape
-import qualified Graphics.Blobs.Palette as P
-
+import Graphics.Blobs.Math
 import qualified Data.IntMap as IntMap -- hiding (map)
-
-import Text.XML.HaXml.Combinators (replaceAttrs)
-import Text.XML.HaXml.Types
-import Text.XML.HaXml.Verbatim
-import qualified Text.XML.HaXml.XmlContent.Haskell as XML
-import Data.List(nub)
-import Control.Monad(when)
+import qualified Graphics.Blobs.Palette as P
+import qualified Graphics.Blobs.Shape as Shape
+import Data.Aeson.TH
 
 data Network g n e = Network
     { networkNodes      :: !(IntMap.IntMap (Node n)) -- ^ maps node numbers to nodes
@@ -78,7 +77,7 @@ data Network g n e = Network
     , networkPalette    :: P.Palette n
     , networkCanvasSize :: (Double, Double)
     , networkInfo       :: g
-    } deriving Show
+    } deriving (Show, Data, Typeable)
 
 data Edge e = Edge
     { edgeFrom :: !NodeNr -- ^ the number of the node where the edge starts
@@ -87,7 +86,7 @@ data Edge e = Edge
     , edgeInfo :: e
     , edgeFromPort :: !PortNr	-- ^ the connection port on the 'from' node
     , edgeToPort   :: !PortNr	-- ^ the connection port on the 'to' node
-    } deriving (Show, Read, Eq)
+    } deriving (Show, Read, Eq, Data, Typeable)
 
 data Node n = Node
     { nodePosition  :: DoublePoint  -- ^ the position of the node on screen
@@ -96,7 +95,7 @@ data Node n = Node
     , nodeShape     :: Either String Shape.Shape	-- ^ name from palette, or shape
     , nodeInfo      :: n
     , nodeArity     :: Maybe (PortNr,PortNr)	-- ^ number of in/out connection ports
-    } deriving (Show, Read)
+    } deriving (Show, Read, Data, Typeable)
 
 type NodeNr = Int
 type EdgeNr = Int
@@ -589,7 +588,7 @@ updateVia edgeNr viaNr v network =
 
 -- ---------------------------------------------------------------------
 -- Orphan instances moved from NetworkFile
-
+{-
 instance (XML.HTypeable g, XML.HTypeable n, XML.HTypeable e)
          => XML.HTypeable (Network g n e) where
     toHType _ = XML.Defined "Network" [] [XML.Constr "Network" [] []]
@@ -736,7 +735,7 @@ instance InfoKind e g => XML.XmlContent (Edge e) where
               ; return (constructEdge f fp t tp v i)
               }
         }
-
+-}
 ---------------------------------------------------------
 -- Internal type isomorphic to (index,value) pairs
 -- (but permits instances of classes)
@@ -748,10 +747,18 @@ data AssocE e = AssocE Int (Edge e)
 deAssocE :: AssocE e -> (Int,Edge e)
 deAssocE (AssocE n v) = (n,v)
 
+-- ---------------------------------------------------------------------
+
+deriveJSON id ''Network
+deriveJSON id ''Edge
+deriveJSON id ''Node
+
 ---------------------------------------------------------
 -- Check whether the network read from file is valid
 ---------------------------------------------------------
 
+networkValid network = Right True
+{-
 networkValid :: [AssocN n] -> [AssocE e] -> XML.XMLParser ()
 networkValid nodeAssocs edgeAssocs
     | containsDuplicates nodeNrs =
@@ -814,3 +821,4 @@ duplicatesBy eq (x:xs)
     | any (eq x) xs = x : duplicatesBy eq (filter (not . eq x) xs)
     | otherwise     = duplicatesBy eq xs
 
+-}

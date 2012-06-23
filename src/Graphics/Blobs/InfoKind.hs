@@ -4,17 +4,18 @@
 {-# LANGUAGE UndecidableInstances #-}
 module Graphics.Blobs.InfoKind where
 
+import Data.Data
 import Text.Parse
-import Text.XML.HaXml.XmlContent.Haskell
 import Graphics.UI.WX
 import Graphics.Blobs.CommonIO
+import Data.Aeson
 
 -- | The @InfoKind@ class is a predicate that ensures we can always create
 --   at least a blank (empty) information element, that we can read and
 --   write them to/from the user, and that there exists some method of
 --   determining the correctness of the value (completeness/consistency etc)
 --   against some global type.
-class (Eq a, Show a, Parse a, XmlContent a, XmlContent g, {- GuiEdit a,-} GuiEdit g, GuiGlobalEdit a g) =>
+class (Eq a, Show a, ToJSON a, FromJSON a, Parse a, Data a, Typeable a, ToJSON g, FromJSON g, Data g, Typeable g, GuiEdit g, GuiGlobalEdit a g) =>
       InfoKind a g | a -> g where
     blank :: a
     check :: String -> g -> a -> [String]		-- returns warnings

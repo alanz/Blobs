@@ -8,7 +8,7 @@
 module Graphics.Blobs.Document
     ( Document
     , Selection(..)
-    , NetworkId(..)
+    , NetworkId
     , toNetworkId
     , empty
     , getNetwork,       setNetwork, unsafeSetNetwork

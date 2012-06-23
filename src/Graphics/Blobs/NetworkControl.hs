@@ -15,6 +15,7 @@ module Graphics.Blobs.NetworkControl
     , levelDownNode, levelUpNode
     , changePage
     , changeGlobalInfo
+    , showStuff
     ) where
 
 import Graphics.Blobs.State
@@ -621,6 +622,25 @@ changePage theFrame state =
                  ; repaintAll state
                  }
              True -> return ()
+    }
+
+-- ---------------------------------------------------------------------
+
+showStuff :: (Show g, Parse g, Descriptor g, GuiEdit g, InfoKind e g, InfoKind n g) =>
+                    Frame () -> State g n e -> IO ()
+showStuff theFrame state =
+  do{ pDoc <- getDocument state
+    ; doc <- PD.getDocument pDoc
+    ; let network      = getNetwork doc
+    ; let oldNetworkId = getNetworkSel doc
+
+    -- ; let str = NetworkFile.toStringAssocs (getNetworkAssocs doc)
+    -- ; let str = NetworkFile.toString (getNetwork doc)
+    ; let str = show (getNetwork doc)
+    ; result <- myTextDialog theFrame MultiLine
+                                         "Show Stuff" str
+                                         True
+    ; return ()
     }
 
 

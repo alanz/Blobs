@@ -1,3 +1,6 @@
+{-# LANGUAGE DeriveDataTypeable #-}
+{-# LANGUAGE TemplateHaskell #-}
+
 module Graphics.Blobs.Shape
        (
          Shape(..)
@@ -7,21 +10,16 @@ module Graphics.Blobs.Shape
        , logicalLineSegments
        ) where
 
-import Graphics.Blobs.CommonIO
-import qualified Graphics.UI.WX as WX
-import Graphics.UI.WXCore hiding (Colour)
---import Graphics.UI.WXCore.Draw
-import Graphics.Blobs.Math
-import Text.Parse
---import Text.XML.HaXml.XmlContent
---import NetworkFile
-
+import Data.Data
 import Graphics.Blobs.Colors
+import Graphics.Blobs.CommonIO
 import Graphics.Blobs.Constants
+import Graphics.Blobs.Math
+import Graphics.UI.WXCore hiding (Colour)
+import Text.Parse
+import qualified Graphics.UI.WX as WX
+import Data.Aeson.TH
 
-import Text.XML.HaXml.Types
-import qualified Text.XML.HaXml.XmlContent.Haskell as XML
-import Data.List(isPrefixOf)
 
 data Shape =
     Circle  { shapeStyle :: ShapeStyle, shapeRadius :: Double }
@@ -30,14 +28,14 @@ data Shape =
   | Lines   { shapeStyle :: ShapeStyle, shapePerimeter :: [DoublePoint] }
 						-- no fill for open shape
   | Composite { shapeSegments :: [Shape] }	-- drawn in given order
-  deriving (Eq, Show, Read)
+  deriving (Eq, Show, Read,Data,Typeable)
 
 data ShapeStyle = ShapeStyle
     { styleStrokeWidth  :: Int
     , styleStrokeColour :: Colour
     , styleFill		:: Colour
     }
-  deriving (Eq, Show, Read)
+  deriving (Eq, Show, Read, Data, Typeable)
 
 instance Parse Shape where
   parse = oneOf
@@ -74,6 +72,9 @@ instance Parse ShapeStyle where
                 `discard` isWord "," `apply` field "styleFill"
                 `discard` isWord "}"
             }
+
+deriveJSON id ''ShapeStyle
+deriveJSON id ''Shape
 
 {-
 instance HTypeable Shape where
@@ -185,6 +186,7 @@ defaultShapeStyle =
 -- Orphan instances coming home
 
 {- derived by DrIFT -}
+{-
 instance XML.HTypeable Shape where
     toHType v = XML.Defined "Shape" []
                     [XML.Constr "Circle" [] [XML.toHType aa,XML.toHType ab]
@@ -229,8 +231,9 @@ instance XML.XmlContent Shape where
                                                      XML.toContents af])]
     toContents v@(Composite ag) =
         [XML.mkElemC (XML.showConstr 3 (XML.toHType v)) (XML.toContents ag)]
-
+-}
 {- derived by DrIFT -}
+{-
 instance XML.HTypeable ShapeStyle where
     toHType v = XML.Defined "ShapeStyle" []
                     [XML.Constr "ShapeStyle" [] [XML.toHType aa,XML.toHType ab,XML.toHType ac]]
@@ -248,3 +251,4 @@ instance XML.XmlContent ShapeStyle where
         [XML.mkElemC (XML.showConstr 0 (XML.toHType v))
                  (concat [XML.toContents aa, XML.toContents ab, XML.toContents ac])]
 
+-}

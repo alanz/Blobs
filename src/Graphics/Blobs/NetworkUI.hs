@@ -1,15 +1,18 @@
+{-# LANGUAGE FlexibleContexts #-}
+
 module Graphics.Blobs.NetworkUI
     ( create
     , getConfig, Config
     ) where
 
 
+import Data.Data
 import Graphics.Blobs.Common
 import Graphics.Blobs.CommonIO
 import Graphics.Blobs.DisplayOptions
 import Graphics.Blobs.GUIEvents
 import Graphics.Blobs.InfoKind
-import Graphics.Blobs.NetworkControl (changeGlobalInfo, changePage)
+import Graphics.Blobs.NetworkControl (changeGlobalInfo, changePage, showStuff)
 import Graphics.Blobs.NetworkView
 import Graphics.Blobs.Operations
 import Graphics.Blobs.SafetyNet
@@ -17,7 +20,7 @@ import Graphics.Blobs.StateUtil
 import Graphics.UI.WX hiding (Child, upKey, downKey)
 import Graphics.UI.WXCore
 import Text.Parse
-import Text.XML.HaXml.XmlContent.Haskell (XmlContent)
+-- import Text.XML.HaXml.XmlContent.Haskell (XmlContent)
 import qualified Graphics.Blobs.Document as Document
 import qualified Graphics.Blobs.Network as Network
 import qualified Graphics.Blobs.NetworkFile as NetworkFile
@@ -48,7 +51,7 @@ getConfig state =
     }
 
 create :: (InfoKind n g, InfoKind e g
-          , XmlContent g, Parse g, Show g, Descriptor g) =>
+          , Parse g, Show g, Descriptor g, Data (Network.Network g n e)) =>
           State.State g n e -> g -> n -> e -> GraphOps g n e -> IO ()
 create state g n e ops =
   do{ theFrame <- frame [ text := "Diagram editor"
@@ -207,6 +210,12 @@ create state g n e ops =
         , on command := safetyNet theFrame $ changePage theFrame state
         ]
 
+    ; menuLine viewMenu
+    ; menuItem viewMenu
+        [ text := "Show Stuff"
+        , on command := safetyNet theFrame $ showStuff theFrame state
+        ]
+
     -- Operations menu
     ; opsMenu  <- menuPane [ text := "&Operations" ]
     ; mapM_ (\ (name,_)->
@@ -303,7 +312,7 @@ newItem state g n e =
         ; repaintAll state
         }
 
-openItem :: (InfoKind n g, InfoKind e g, XmlContent g) =>
+openItem :: (InfoKind n g, InfoKind e g, Data (Network.Network g n e)) =>
             Frame () ->  State.State g n e -> IO ()
 openItem theFrame state =
   do{ mbfname <- fileOpenDialog
@@ -318,7 +327,7 @@ openItem theFrame state =
 
 -- Third argument: Nothing means exceptions are ignored (used in Configuration)
 --              Just f means exceptions are shown in a dialog on top of frame f
-openNetworkFile :: (InfoKind n g, InfoKind e g, XmlContent g) =>
+openNetworkFile :: (InfoKind n g, InfoKind e g, Data (Network.Network g n e)) =>
                    String -> State.State g n e -> Maybe (Frame ()) -> IO ()
 openNetworkFile fname state exceptionsFrame =
   closeDocAndThen state $
@@ -430,7 +439,7 @@ applyCanvasSize state =
                                      (logicalToScreenY ppi height) ]
     }
 
-saveToDisk :: (InfoKind n g, InfoKind e g, XmlContent g) =>
+saveToDisk :: (InfoKind n g, InfoKind e g, Data (Network.Network g n e)) =>
               Frame () -> String -> Document.Document g n e -> IO Bool
 saveToDisk theFrame fileName doc =
     -- safeWriteFile theFrame fileName (NetworkFile.toString (Document.getNetwork doc))
