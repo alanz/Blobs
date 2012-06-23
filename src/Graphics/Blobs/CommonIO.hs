@@ -7,6 +7,7 @@ import Graphics.Blobs.Math
 import Graphics.Blobs.SafetyNet
 import Graphics.UI.WX
 import Graphics.UI.WXCore
+import Graphics.UI.XTC
 import System.Directory
 import System.IO
 import Text.Parse
@@ -167,6 +168,42 @@ singleSelectionDialog parentWindow dialogTitle strings initialSelection =
                 do set ok  [on command := safetyNet parentWindow $
                                           do index <- get theListBox selection
                                              stop1 (Just (safeIndex "CommonIO.singleSelectionDialog" strings index))]
+                   set can [on command := safetyNet parentWindow $
+                                          stop1 Nothing]
+    }
+
+-- Dialog for selecting a single String
+-- Returns Nothing if Cancel was pressed, otherwise it returns the selected string
+singleSelectionDialogTyped :: (Labeled b, Eq b, Show b) => Window a -> String -> [b] -> (Maybe b)
+                      -> IO (Maybe b)
+singleSelectionDialogTyped _ _ [] _ =
+    internalError "CommonIO" "singleSelectionDialogTyped" "no items"
+singleSelectionDialogTyped parentWindow dialogTitle strings initialSelection =
+  do{ d <- dialog parentWindow [ text := dialogTitle, resizeable := True ]
+    ; p <- panel d []
+
+    ; rb <- (mkRadioView p Vertical strings
+            [ {- text := "Node Type", -} selection := 0 ])
+
+    ; ifJust initialSelection $ \selString ->
+        case elemIndex selString strings of
+            Nothing -> internalError "CommonIO" "singleSelectionDialog"
+                            (  "initial selection " ++ show selString
+                            ++ " can not be found in " ++ show strings )
+            Just i -> set rb [ selection := i ]
+    ; ok    <- button p [text := "Ok"]
+    ; can   <- button p [text := "Cancel", identity := wxID_CANCEL]
+    ; buttonSetDefault ok
+    ; set d [ layout := container p $
+                        column 10 [ vfill $ widget rb
+                                  , row 5 [widget ok, widget can]
+                                  ]
+            , clientSize := sz 300 400
+            ]
+    ; showModal d $ \stop1 ->
+                do set ok  [on command := safetyNet parentWindow $
+                                          do sel <- get rb typedSelection
+                                             stop1 (Just sel)]
                    set can [on command := safetyNet parentWindow $
                                           stop1 Nothing]
     }

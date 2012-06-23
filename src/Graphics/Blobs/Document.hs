@@ -15,7 +15,7 @@ module Graphics.Blobs.Document
     , getEmptyNetwork
     , getSelection,     setSelection
 
-    , getNetworkSel, setNetworkAndSel, setNetworkSel
+    , getNetworkSel, setNetworkAndSel, setNetworkSel, getNetworkSelectors
 
     , getNetworkAssocs, setNetworkAssocs
 
@@ -76,11 +76,13 @@ getNetwork              :: Document g n e -> Network.Network g n e
 getEmptyNetwork         :: Document g n e -> Network.Network g n e
 getSelection            :: Document g n e -> Selection
 getNetworkSel           :: Document g n e -> NetworkId
+getNetworkSelectors     :: Document g n e -> [NetworkId]
 
 getNetwork              doc = (docNetwork doc) Map.! (docNetworkSel doc)
 getEmptyNetwork         doc = docEmptyNetwork doc
 getSelection            doc = docSelection doc
 getNetworkSel           doc = docNetworkSel doc
+getNetworkSelectors     doc = Map.keys (docNetwork doc)
 
 -- | Get a list of pairs where each pair contains a network id number and the corresponding network
 getNetworkAssocs :: Document g n e -> [(NetworkId,Network.Network g n e)]

@@ -9,7 +9,7 @@ import Graphics.Blobs.CommonIO
 import Graphics.Blobs.DisplayOptions
 import Graphics.Blobs.GUIEvents
 import Graphics.Blobs.InfoKind
-import Graphics.Blobs.NetworkControl (changeGlobalInfo)
+import Graphics.Blobs.NetworkControl (changeGlobalInfo, changePage)
 import Graphics.Blobs.NetworkView
 import Graphics.Blobs.Operations
 import Graphics.Blobs.SafetyNet
@@ -201,6 +201,11 @@ create state g n e ops =
         , on command := safetyNet theFrame $ do
                             { State.changeDisplayOptions (toggle EdgeInfo) state
                             ; repaintAll state } ]
+    ; menuLine viewMenu
+    ; menuItem viewMenu
+        [ text := "Select Page"
+        , on command := safetyNet theFrame $ changePage theFrame state
+        ]
 
     -- Operations menu
     ; opsMenu  <- menuPane [ text := "&Operations" ]

@@ -44,11 +44,6 @@ instance Descriptor a => Descriptor (Maybe a) where
   descriptor Nothing  =  "Nothing"
   descriptor (Just x) =  "Just (" ++ (descriptor x) ++ ")"
 
-{-
-instance (Show a,Parse a, Descriptor a) => GuiEdit (Maybe a) where
-  editDialog _a = undefined
--}
-
 
 instance (Show a,Parse a, Descriptor a) => GuiGlobalEdit (Maybe a) b where
   editDialogWithGlobal _a _b = undefined
@@ -82,9 +77,3 @@ class (Show a,Parse a,Descriptor a) => GuiGlobalEdit a g where
                             -> IO (Maybe a) -- ^ Updated value if changed
 
 
--- -----------------------------------------------
-{-
-instance XmlContent () where
-  toContents = undefined
-  parseContents = undefined
--}

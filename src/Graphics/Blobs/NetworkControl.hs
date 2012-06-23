@@ -13,6 +13,7 @@ module Graphics.Blobs.NetworkControl
     , renameNode, reinfoNodeOrEdge, reinfoNodeOrEdgeUser
     , reArityNode
     , levelDownNode, levelUpNode
+    , changePage
     , changeGlobalInfo
     ) where
 
@@ -575,24 +576,51 @@ levelDownNode theFrame state =
     ; case getSelection doc of
         NodeSelection nodeNr ->
               do{ let nodeInfo     = getNodeInfo network nodeNr
-                      oldNetworkId = "p2"
-                      newSel = toNetworkId "p3"
+                      -- oldNetworkId = "p2"
+                      oldNetworkId = getNetworkSel doc
                 ; result <- myTextDialog theFrame SingleLine
                                          "Id of child" (show oldNetworkId)
                                          True
                 ; ifJust result $ \newSel ->
-                     do{
-                       let
-                          doc2 = setNetworkAndSel newSel (getEmptyNetwork doc) doc
-                          -- doc2 = setNetworkAndSel "p3" (getEmptyNetwork doc) doc
-                          -- doc2 = setNetwork (getEmptyNetwork doc) doc
+                     case toNetworkId (read newSel) == oldNetworkId of
+                       False ->
+                         do{
+                           let
+                             -- doc2 = setNetworkAndSel newSel (getEmptyNetwork doc) doc
+                             doc2 = setNetworkSel newSel doc
 
-                       ; PD.setDocument "change node child Id"
-                               doc2 pDoc
-                       ; repaintAll state
-                       }
+                           ; PD.setDocument "change node child Id"
+                                  doc2 pDoc
+                           ; repaintAll state
+                           }
+                       True -> return ()
                 }
         _ -> return ()
+    }
+
+
+-- ---------------------------------------------------------------------
+
+changePage :: (Show g, Parse g, Descriptor g, GuiEdit g) =>
+                    Frame () -> State g n e -> IO ()
+changePage theFrame state =
+  do{ pDoc <- getDocument state
+    ; doc <- PD.getDocument pDoc
+    ; let network      = getNetwork doc
+    ; let oldNetworkId = getNetworkSel doc
+    ; result <- singleSelectionDialogTyped theFrame "Choose Page" (getNetworkSelectors doc) (Just oldNetworkId)
+    ; ifJust result $ \newSel ->
+           case newSel == oldNetworkId of
+             False ->
+               do{
+                 let
+                   doc2 = setNetworkSel newSel doc
+
+                 ; PD.setDocument "change node child Id"
+                             doc2 pDoc
+                 ; repaintAll state
+                 }
+             True -> return ()
     }
 
 
