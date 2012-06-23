@@ -325,12 +325,15 @@ openNetworkFile fname state exceptionsFrame =
                     ++ "Reason: " ++ show exc)
     ) $
   do{ contents <- strictReadFile fname
-    ; let errorOrNetwork = NetworkFile.fromString contents
+    -- ; let errorOrNetwork = NetworkFile.fromString contents
+    ; let errorOrNetwork = NetworkFile.fromStringAssocs contents
     ; case errorOrNetwork of {
         Left err -> ioError (userError err);
-        Right (network, warnings, oldFormat) ->
+        -- Right (network, warnings, oldFormat) ->
+        Right (networkAssocs, warnings, oldFormat) ->
   do{ -- "Open" document
-    ; let newDoc = Document.setNetwork network (Document.empty undefined undefined undefined)
+    -- ; let newDoc = Document.setNetwork network (Document.empty undefined undefined undefined)
+    ; let newDoc = Document.setNetworkAssocs networkAssocs (Document.empty undefined undefined undefined)
     ; pDoc <- State.getDocument state
     ; PD.resetDocument (if null warnings then Just fname else Nothing)
                        newDoc pDoc
@@ -425,7 +428,8 @@ applyCanvasSize state =
 saveToDisk :: (InfoKind n g, InfoKind e g, XmlContent g) =>
               Frame () -> String -> Document.Document g n e -> IO Bool
 saveToDisk theFrame fileName doc =
-    safeWriteFile theFrame fileName (NetworkFile.toString (Document.getNetwork doc))
+    -- safeWriteFile theFrame fileName (NetworkFile.toString (Document.getNetwork doc))
+    safeWriteFile theFrame fileName (NetworkFile.toStringAssocs (Document.getNetworkAssocs doc))
 
 exit :: State.State g n e -> IO ()
 exit state =

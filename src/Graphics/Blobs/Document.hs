@@ -17,6 +17,8 @@ module Graphics.Blobs.Document
 
     , getNetworkSel, setNetworkAndSel, setNetworkSel
 
+    , getNetworkAssocs, setNetworkAssocs
+
     , updateNetwork, updateNetworkEx
     ) where
 
@@ -80,9 +82,23 @@ getEmptyNetwork         doc = docEmptyNetwork doc
 getSelection            doc = docSelection doc
 getNetworkSel           doc = docNetworkSel doc
 
+-- | Get a list of pairs where each pair contains a network id number and the corresponding network
+getNetworkAssocs :: Document g n e -> [(NetworkId,Network.Network g n e)]
+getNetworkAssocs doc = Map.assocs (docNetwork doc)
+
 {--------------------------------------------------
  -- SETTERS
  --------------------------------------------------}
+
+setNetworkAssocs :: [(NetworkId, Network.Network g n e)] -> Document g n e -> Document g n e
+setNetworkAssocs networkAssocs doc =
+    doc { docNetwork   = Map.fromList networkAssocs
+        , docNetworkSel = case networkAssocs of
+                           [] -> "p1"
+                           _  -> fst $ head networkAssocs
+        , docSelection = NoSelection
+        }
+
 
 -- | setNetwork clears the selection because the node may not exist
 --   in the new network
