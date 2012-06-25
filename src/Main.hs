@@ -24,6 +24,7 @@ main = start $
     ; NetworkUI.create state ()		-- global state is just the unit value
                              undefined	-- dummy node state (for typechecker)
                              undefined	-- dummy edge state (for typechecker)
+                             Palette.empty    -- initial palette
                              graphOps	-- operations available from menu
     }
 

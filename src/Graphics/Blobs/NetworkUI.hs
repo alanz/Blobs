@@ -52,8 +52,8 @@ getConfig state =
 
 create :: (InfoKind n g, InfoKind e g
           , Parse g, Show g, Descriptor g, Data (Network.Network g n e)) =>
-          State.State g n e -> g -> n -> e -> GraphOps g n e -> IO ()
-create state g n e ops =
+          State.State g n e -> g -> n -> e -> p -> GraphOps g n e -> IO ()
+create state g n e p ops =
   do{ theFrame <- frame [ text := "Diagram editor"
                         , position      := pt 200 20
                         , clientSize    := sz 300 240 ]
@@ -95,7 +95,7 @@ create state g n e ops =
     ; fileMenu   <- menuPane [ text := "&File" ]
     ; menuItem fileMenu
         [ text := "New\tCtrl+N"
-        , on command := safetyNet theFrame $ newItem state g n e
+        , on command := safetyNet theFrame $ newItem state g n e p
         ]
     ; menuItem fileMenu
         [ text := "Open...\tCtrl+O"
@@ -228,7 +228,7 @@ create state g n e ops =
             ) (ioOps ops)
 
     ; PD.initialise pDoc (PD.PD
-        { PD.document           = Document.empty g n e
+        { PD.document           = Document.empty g n e p
         , PD.history            = []
         , PD.future             = []
         , PD.limit              = Nothing
@@ -304,11 +304,11 @@ closeDocAndThen state action =
     ; when continue $ action
     }
 
-newItem :: (InfoKind n g, InfoKind e g) => State.State g n e -> g -> n -> e -> IO ()
-newItem state g n e =
+newItem :: (InfoKind n g, InfoKind e g) => State.State g n e -> g -> n -> e -> p -> IO ()
+newItem state g n e p =
     closeDocAndThen state $
       do{ pDoc <- State.getDocument state
-        ; PD.resetDocument Nothing (Document.empty g n e) pDoc
+        ; PD.resetDocument Nothing (Document.empty g n e p) pDoc
         ; repaintAll state
         }
 
@@ -347,7 +347,7 @@ openNetworkFile fname state exceptionsFrame =
         Right (networkAssocs, warnings, oldFormat) ->
   do{ -- "Open" document
     -- ; let newDoc = Document.setNetwork network (Document.empty undefined undefined undefined)
-    ; let newDoc = Document.setNetworkAssocs networkAssocs (Document.empty undefined undefined undefined)
+    ; let newDoc = Document.setNetworkAssocs networkAssocs (Document.empty undefined undefined undefined undefined)
     ; pDoc <- State.getDocument state
     ; PD.resetDocument (if null warnings then Just fname else Nothing)
                        newDoc pDoc

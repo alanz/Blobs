@@ -56,8 +56,17 @@ data Selection
  -- CREATION
  --------------------------------------------------}
 
+-- | An empty document
+empty :: (InfoKind e g, InfoKind n g) => g -> n -> e -> p -> Document g n e
+empty g n e p =
+    Document
+    { docNetwork    = Map.fromList [(toNetworkId "p1", Network.empty g n e)]
+    , docNetworkSel = toNetworkId "p1"
+    , docSelection  = NoSelection
+    , docEmptyNetwork = Network.empty g n e
+    }
 
-
+{-
 -- | An empty document
 empty :: (InfoKind e g, InfoKind n g) => g -> n -> e -> Document g n e
 empty g n e =
@@ -67,6 +76,7 @@ empty g n e =
     , docSelection  = NoSelection
     , docEmptyNetwork = Network.empty g n e
     }
+-}
 
 {--------------------------------------------------
  -- GETTERS
