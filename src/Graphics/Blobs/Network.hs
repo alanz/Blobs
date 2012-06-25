@@ -103,11 +103,12 @@ type ViaNr  = Int
 type PortNr = Int
 
 -- | Create an empty network
-empty :: (InfoKind n g, InfoKind e g) => g -> n -> e -> Network g n e
-empty g _ _ = Network
+empty :: (InfoKind n g, InfoKind e g) => g -> n -> e -> P.Palette n -> Network g n e
+empty g _ _ p = Network
     { networkNodes      = IntMap.empty
     , networkEdges      = IntMap.empty
-    , networkPalette    = P.empty
+    -- , networkPalette    = P.empty
+    , networkPalette    = p
     , networkCanvasSize = (15, 9)
     , networkInfo       = g
     }

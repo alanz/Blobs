@@ -25,6 +25,7 @@ module Graphics.Blobs.Document
 import qualified Graphics.Blobs.Network as Network
 import Graphics.Blobs.InfoKind
 import Graphics.Blobs.Math
+import qualified Graphics.Blobs.Palette as P
 import qualified Data.Map as Map
 
 
@@ -57,13 +58,13 @@ data Selection
  --------------------------------------------------}
 
 -- | An empty document
-empty :: (InfoKind e g, InfoKind n g) => g -> n -> e -> p -> Document g n e
+empty :: (InfoKind e g, InfoKind n g) => g -> n -> e -> P.Palette n -> Document g n e
 empty g n e p =
     Document
-    { docNetwork    = Map.fromList [(toNetworkId "p1", Network.empty g n e)]
+    { docNetwork    = Map.fromList [(toNetworkId "p1", Network.empty g n e p)]
     , docNetworkSel = toNetworkId "p1"
     , docSelection  = NoSelection
-    , docEmptyNetwork = Network.empty g n e
+    , docEmptyNetwork = Network.empty g n e p
     }
 
 {-

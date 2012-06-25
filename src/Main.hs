@@ -8,6 +8,9 @@ import Data.Data
 import Data.List (nub)
 import Data.Maybe (fromJust)
 import Graphics.Blobs.CommonIO
+import Graphics.Blobs.Math
+import Graphics.Blobs.Colors
+import Graphics.Blobs.Shape
 import Graphics.Blobs.InfoKind
 import Graphics.Blobs.Network
 import Graphics.Blobs.Operations
@@ -15,7 +18,7 @@ import Graphics.UI.WX
 import qualified Data.IntMap as IntMap
 import qualified Graphics.Blobs.NetworkUI as NetworkUI
 import qualified Graphics.Blobs.State as State
-import qualified Graphics.Blobs.Palette as Palette
+import qualified Graphics.Blobs.Palette as P
 import Data.Aeson
 
 main :: IO ()
@@ -24,7 +27,8 @@ main = start $
     ; NetworkUI.create state ()		-- global state is just the unit value
                              undefined	-- dummy node state (for typechecker)
                              undefined	-- dummy edge state (for typechecker)
-                             Palette.empty    -- initial palette
+                             -- P.empty    -- initial palette
+                             simple     -- initial palette
                              graphOps	-- operations available from menu
     }
 
@@ -80,5 +84,64 @@ accumulateIn :: IntMap.IntMap (Edge [Int]) -> NodeNr -> Node [Int] -> Node [Int]
 
 gain :: IO ()
 gain = main -- :-)
+
+-- ---------------------------------------------------------------------
+
+simple :: P.Palette [Int]
+simple =  P.Palette
+  [ ("circle"
+    , ( Circle  { shapeStyle = ShapeStyle { styleStrokeWidth = 1
+                                        , styleStrokeColour = RGB 0 0 0
+                                        , styleFill = RGB 128 200 128
+                                        }
+              , shapeRadius = 0.5 }
+      , Just [] ))
+  , ("square"
+    , ( Polygon { shapeStyle = ShapeStyle { styleStrokeWidth = 2
+                                        , styleStrokeColour = RGB 0 0 0
+                                        , styleFill = RGB 200 128 200
+                                        }
+              , shapePerimeter = [ DoublePoint (-0.5) (-0.5)
+                                 , DoublePoint 0.5 (-0.5)
+                                 , DoublePoint 0.5 0.5
+                                 , DoublePoint (-0.5) 0.5 ] }
+      , Just [] ))
+  , ("triangle left"
+    , ( Polygon { shapeStyle = ShapeStyle { styleStrokeWidth = 1
+                                        , styleStrokeColour = RGB 0 0 0
+                                        , styleFill = RGB 128 200 200
+                                        }
+              , shapePerimeter = [ DoublePoint (-0.5) 0
+                                 , DoublePoint 0.5 (-0.5)
+                                 , DoublePoint 0.5 0.5 ] }
+      , Just [] ))
+  , ("triangle right"
+    , ( Polygon { shapeStyle = ShapeStyle { styleStrokeWidth = 1
+                                        , styleStrokeColour = RGB 0 0 0
+                                        , styleFill = RGB 128 200 200
+                                        }
+              , shapePerimeter = [ DoublePoint (-0.5) (-0.5)
+                                 , DoublePoint (-0.5) 0.5
+                                 , DoublePoint 0.5 0.0 ] }
+      , Just [] ))
+  , ("wire"
+    , ( Composite { shapeSegments =
+                    [ Lines { shapeStyle = ShapeStyle
+                                               { styleStrokeWidth = 2
+                                               , styleStrokeColour = RGB 0 0 0
+                                               , styleFill = RGB 128 128 128
+                                               }
+                            , shapePerimeter = [ DoublePoint 0.0 (-0.5)
+                                               , DoublePoint (-0.2) 0.5 ] }
+                    , Lines { shapeStyle = ShapeStyle
+                                               { styleStrokeWidth = 2
+                                               , styleStrokeColour = RGB 0 0 0
+                                               , styleFill = RGB 128 128 128
+                                               }
+                            , shapePerimeter = [ DoublePoint 0.2 (-0.5)
+                                               , DoublePoint 0.0 0.5 ] }
+                    ] }
+      , Just [] ))
+  ]
 
 

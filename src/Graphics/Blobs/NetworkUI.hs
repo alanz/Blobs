@@ -20,11 +20,11 @@ import Graphics.Blobs.StateUtil
 import Graphics.UI.WX hiding (Child, upKey, downKey)
 import Graphics.UI.WXCore
 import Text.Parse
--- import Text.XML.HaXml.XmlContent.Haskell (XmlContent)
 import qualified Graphics.Blobs.Document as Document
 import qualified Graphics.Blobs.Network as Network
 import qualified Graphics.Blobs.NetworkFile as NetworkFile
 import qualified Graphics.Blobs.PDDefaults as PD
+import qualified Graphics.Blobs.Palette as P
 import qualified Graphics.Blobs.PersistentDocument as PD
 import qualified Graphics.Blobs.State as State
 
@@ -52,7 +52,7 @@ getConfig state =
 
 create :: (InfoKind n g, InfoKind e g
           , Parse g, Show g, Descriptor g, Data (Network.Network g n e)) =>
-          State.State g n e -> g -> n -> e -> p -> GraphOps g n e -> IO ()
+          State.State g n e -> g -> n -> e -> P.Palette n -> GraphOps g n e -> IO ()
 create state g n e p ops =
   do{ theFrame <- frame [ text := "Diagram editor"
                         , position      := pt 200 20
@@ -66,7 +66,7 @@ create state g n e p ops =
     ; State.setPageSetupDialog initialPageSetupDialog state
 
     -- Drawing area
-    ; let (width, height) = Network.getCanvasSize (Network.empty g n e)
+    ; let (width, height) = Network.getCanvasSize (Network.empty g n e p)
     ; ppi <- getScreenPPI
     ; canvas <- scrolledWindow theFrame
         [ virtualSize   := sz (logicalToScreenX ppi width)
@@ -83,8 +83,8 @@ create state g n e p ops =
     -- Attach handlers to drawing area
     ; set canvas
         [ on paint :=    \dc _ -> safetyNet theFrame $ paintHandler state dc
-        , on mouse :=    \p    -> safetyNet theFrame $
-                                      do mouseEvent p canvas theFrame state
+        , on mouse :=    \em   -> safetyNet theFrame $
+                                      do mouseEvent em canvas theFrame state
                                      --; focusOn canvas
         , on keyboard := \k    -> safetyNet theFrame $
                                       do keyboardEvent theFrame state k
@@ -304,7 +304,7 @@ closeDocAndThen state action =
     ; when continue $ action
     }
 
-newItem :: (InfoKind n g, InfoKind e g) => State.State g n e -> g -> n -> e -> p -> IO ()
+newItem :: (InfoKind n g, InfoKind e g) => State.State g n e -> g -> n -> e -> P.Palette n -> IO ()
 newItem state g n e p =
     closeDocAndThen state $
       do{ pDoc <- State.getDocument state
