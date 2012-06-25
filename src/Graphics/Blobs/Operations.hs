@@ -35,15 +35,15 @@ pureGraphOp (opName,operation) =
   (opName, \state-> do{ pDoc <- getDocument state
                       ; doc  <- PD.getDocument pDoc
                       ; let network = getNetwork doc
-                            g = getGlobalInfo network
+                            g = getGlobalInfo doc
                             n = networkNodes network
                             e = networkEdges network
                             (g',n',e') = operation (g,n,e)
                             network' = setNodeAssocs (IntMap.assocs n')
                                        $ setEdgeAssocs (IntMap.assocs e')
-                                       $ setGlobalInfo g'
+                                       -- $ setGlobalInfo g'
                                        $ network
-                      ; PD.updateDocument opName (setNetwork network') pDoc
+                      ; PD.updateDocument opName (setNetworkAndGlobal network' g') pDoc
                       }
   )
 

@@ -440,7 +440,7 @@ reinfoNodeOrEdge theFrame state =
                                       ("Excess text after parsed value."
                                       ++"\nRemaining text: "++s)
                           ; case check (getNodeName network nodeNr)
-                                       (getGlobalInfo network) x of
+                                       (getGlobalInfo doc) x of
                               [] -> return ()
                               e  -> errorDialog theFrame "Validity warning"
                                         ("Validity check fails:\n"
@@ -468,7 +468,7 @@ reinfoNodeOrEdge theFrame state =
                                       ("Excess text after parsed value."
                                       ++"\nRemaining text: "++s)
                           ; case check "edge"
-                                       (getGlobalInfo network) x of
+                                       (getGlobalInfo doc) x of
                               [] -> return ()
                               e  -> errorDialog theFrame "Validity warning"
                                         ("Validity check fails:\n"
@@ -492,7 +492,7 @@ reinfoNodeOrEdgeUser theFrame state =
   do{ pDoc <- getDocument state
     ; doc <- PD.getDocument pDoc
     ; let network    = getNetwork doc
-          globalInfo = getGlobalInfo network
+          globalInfo = getGlobalInfo doc
     ; case getSelection doc of
         NodeSelection nodeNr ->
           do{ let oldInfo = getNodeInfo network nodeNr
@@ -503,7 +503,7 @@ reinfoNodeOrEdgeUser theFrame state =
               Just newInfo ->
                 do {
                   case check (getNodeName network nodeNr)
-                       (getGlobalInfo network) newInfo of
+                       (getGlobalInfo doc) newInfo of
                     [] -> return ()
                     e  -> errorDialog theFrame "Validity warning"
                            ("Validity check fails:\n"
@@ -521,7 +521,7 @@ reinfoNodeOrEdgeUser theFrame state =
             ; result <- editDialogWithGlobal theFrame "Edit edge info" oldInfo globalInfo
             ; ifJust result $ \newInfo ->
                        do { case check "edge"
-                                       (getGlobalInfo network) newInfo of
+                                       (getGlobalInfo doc) newInfo of
                               [] -> return ()
                               e  -> errorDialog theFrame "Validity warning"
                                         ("Validity check fails:\n"
@@ -680,13 +680,14 @@ changeGlobalInfo theFrame state =
   do{ pDoc <- getDocument state
     ; doc <- PD.getDocument pDoc
     ; let network = getNetwork doc
-          info    = getGlobalInfo network
+          info    = getGlobalInfo doc
     -- ; result <- editGlobalInfo theFrame ("Edit "++descriptor info) info
     ; result <- editDialog theFrame ("Edit "++descriptor info) info
     ; ifJust result $ \newInfo->
                   do {
                     PD.updateDocument ("edit "++descriptor info)
-                      (updateNetwork (setGlobalInfo newInfo)) pDoc
+                      -- (updateNetwork (setGlobalInfo newInfo)) pDoc
+                      (setGlobalInfo newInfo) pDoc
                   ; repaintAll state	-- no visible change?
                   }
     }

@@ -6,24 +6,23 @@ module Graphics.Blobs.NetworkView
     , edgeContains
     ) where
 
-import Graphics.Blobs.Constants
-import Graphics.Blobs.CommonIO
-import qualified Graphics.Blobs.Network as Network
-import Graphics.Blobs.Document
-import Graphics.Blobs.Colors
-import Graphics.Blobs.Palette
 
+import Control.Exception
+import Data.Maybe
+import Graphics.Blobs.Colors
+import Graphics.Blobs.CommonIO
+import Graphics.Blobs.Constants
+import Graphics.Blobs.DisplayOptions
+import Graphics.Blobs.Document
+import Graphics.Blobs.InfoKind
 import Graphics.Blobs.Math
+import Graphics.Blobs.Palette
 import Graphics.UI.WX as WX hiding (Vector)
 import Graphics.UI.WXCore hiding (Document, screenPPI, Colour)
-import Data.Maybe
-import qualified Graphics.Blobs.Shape as Shape
-import Graphics.Blobs.DisplayOptions
-import Graphics.Blobs.InfoKind
-
 import Prelude hiding (catch)
-import Control.Exception
 import qualified Data.IntMap as IntMap
+import qualified Graphics.Blobs.Network as Network
+import qualified Graphics.Blobs.Shape as Shape
 
 drawCanvas :: (InfoKind n g, InfoKind e g, Descriptor g) =>
               Document g n e -> DC () -> DisplayOptions -> IO ()
@@ -111,7 +110,7 @@ reallyDrawCanvas doc ppi dc opt =
     network           = getNetwork doc
     theSelection      = getSelection doc
     (Palette palette) = Network.getPalette network
-    global            = Network.getGlobalInfo network
+    global            = getGlobalInfo doc
 
     drawNode :: Int -> [Prop (DC ())] -> IO ()
     drawNode nodeNr options =

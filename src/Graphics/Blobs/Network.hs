@@ -20,7 +20,7 @@ module Graphics.Blobs.Network
     , getEdgeAssocs,    setEdgeAssocs
     , getCanvasSize,    setCanvasSize
     , getPalette,       setPalette
-    , getGlobalInfo,    setGlobalInfo
+    -- , getGlobalInfo,    setGlobalInfo
 
     , getNode
     , getEdge
@@ -71,12 +71,12 @@ import qualified Graphics.Blobs.Palette as P
 import qualified Graphics.Blobs.Shape as Shape
 import Data.Aeson.TH
 
-data Network g n e = Network
+data Network _g n e = Network
     { networkNodes      :: !(IntMap.IntMap (Node n)) -- ^ maps node numbers to nodes
     , networkEdges      :: !(IntMap.IntMap (Edge e)) -- ^ maps edge numbers to edges
     , networkPalette    :: P.Palette n
     , networkCanvasSize :: (Double, Double)
-    , networkInfo       :: g
+    -- , networkInfo       :: g
     } deriving (Show, Data, Typeable)
 
 data Edge e = Edge
@@ -104,13 +104,13 @@ type PortNr = Int
 
 -- | Create an empty network
 empty :: (InfoKind n g, InfoKind e g) => g -> n -> e -> P.Palette n -> Network g n e
-empty g _ _ p = Network
+empty _g _ _ p = Network
     { networkNodes      = IntMap.empty
     , networkEdges      = IntMap.empty
     -- , networkPalette    = P.empty
     , networkPalette    = p
     , networkCanvasSize = (15, 9)
-    , networkInfo       = g
+    -- , networkInfo       = g
     }
 
 -- | Map a function over the nodes, possibly changes the type
@@ -126,7 +126,7 @@ mapNodeNetwork nodeFun network =
         , networkEdges = networkEdges network
         , networkPalette = fmap (const blank) $ networkPalette network
         , networkCanvasSize = networkCanvasSize network
-        , networkInfo = networkInfo network
+        -- , networkInfo = networkInfo network
         }
 
 constructEdge :: NodeNr -> PortNr -> NodeNr -> PortNr
@@ -352,8 +352,8 @@ getPalette network = networkPalette network
 getCanvasSize :: Network g n e -> (Double, Double)
 getCanvasSize network = networkCanvasSize network
 
-getGlobalInfo :: Network g n e -> g
-getGlobalInfo network = networkInfo network
+-- getGlobalInfo :: Network g n e -> g
+-- getGlobalInfo network = networkInfo network
 
 -- | Find the number of an edge given start and end node number
 findEdge :: NodeNr -> NodeNr -> Network g n e -> Maybe EdgeNr
@@ -552,8 +552,8 @@ setPalette palette network = network { networkPalette = palette }
 setCanvasSize :: (Double, Double) -> Network g n e -> Network g n e
 setCanvasSize canvasSize network = network { networkCanvasSize = canvasSize }
 
-setGlobalInfo :: g -> Network g n e -> Network g n e
-setGlobalInfo ninfo network = network { networkInfo = ninfo }
+-- setGlobalInfo :: g -> Network g n e -> Network g n e
+-- setGlobalInfo ninfo network = network { networkInfo = ninfo }
 
 {-----------------------------------
   Local functions

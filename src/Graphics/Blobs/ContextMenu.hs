@@ -25,7 +25,9 @@ canvas theFrame state =
         [ text := "Add node (shift-click)"
         , on command := safetyNet theFrame $ addNodeItem theFrame state
         ]
-    ; g <- fmap (getGlobalInfo . getNetwork)
+    -- ; g <- fmap (getGlobalInfo . getNetwork)
+    --             (PD.getDocument =<< getDocument state)
+    ; g <- fmap (getGlobalInfo)
                 (PD.getDocument =<< getDocument state)
     ; menuItem contextMenu
         [ text := ("Edit "++descriptor g)

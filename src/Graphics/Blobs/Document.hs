@@ -12,7 +12,9 @@ module Graphics.Blobs.Document
     , toNetworkId
     , empty
     , getNetwork,       setNetwork, unsafeSetNetwork
+    , setNetworkAndGlobal
     , getEmptyNetwork
+    , getGlobalInfo,    setGlobalInfo
     , getSelection,     setSelection
 
     , getNetworkSel, setNetworkAndSel, setNetworkSel, getNetworkSelectors
@@ -42,6 +44,7 @@ data Document g n e = Document
     , docNetworkSel     :: NetworkId -- ^Currently selected network
     , docSelection      :: Selection
     , docEmptyNetwork   :: Network.Network g n e
+    , docGlobalInfo     :: g
     } deriving Show
 
 data Selection
@@ -61,10 +64,11 @@ data Selection
 empty :: (InfoKind e g, InfoKind n g) => g -> n -> e -> P.Palette n -> Document g n e
 empty g n e p =
     Document
-    { docNetwork    = Map.fromList [(toNetworkId "p1", Network.empty g n e p)]
-    , docNetworkSel = toNetworkId "p1"
-    , docSelection  = NoSelection
+    { docNetwork      = Map.fromList [(toNetworkId "p1", Network.empty g n e p)]
+    , docNetworkSel   = toNetworkId "p1"
+    , docSelection    = NoSelection
     , docEmptyNetwork = Network.empty g n e p
+    , docGlobalInfo   = g
     }
 
 {-
@@ -88,12 +92,14 @@ getEmptyNetwork         :: Document g n e -> Network.Network g n e
 getSelection            :: Document g n e -> Selection
 getNetworkSel           :: Document g n e -> NetworkId
 getNetworkSelectors     :: Document g n e -> [NetworkId]
+getGlobalInfo           :: Document g n e -> g
 
 getNetwork              doc = (docNetwork doc) Map.! (docNetworkSel doc)
 getEmptyNetwork         doc = docEmptyNetwork doc
 getSelection            doc = docSelection doc
 getNetworkSel           doc = docNetworkSel doc
 getNetworkSelectors     doc = Map.keys (docNetwork doc)
+getGlobalInfo           doc = docGlobalInfo doc
 
 -- | Get a list of pairs where each pair contains a network id number and the corresponding network
 getNetworkAssocs :: Document g n e -> [(NetworkId,Network.Network g n e)]
@@ -121,6 +127,15 @@ setNetwork theNetwork doc =
         , docSelection = NoSelection
         }
 
+-- | setNetwork clears the selection because the node may not exist
+--   in the new network
+setNetworkAndGlobal :: Network.Network g n e -> g -> Document g n e -> Document g n e
+setNetworkAndGlobal theNetwork theGlobal doc = doc''
+  where
+    doc' = setNetwork theNetwork doc
+    doc'' = setGlobalInfo theGlobal doc'
+
+
 -- | setNetworkAndSel clears the selection, and creates an empty new
 -- page if it does not currently exist
 setNetworkAndSel :: NetworkId -> Network.Network g n e -> Document g n e -> Document g n e
@@ -144,6 +159,10 @@ setNetworkSel sel doc =
 
 setSelection :: Selection -> Document g n e -> Document g n e
 setSelection theSelection doc = doc { docSelection = theSelection }
+
+
+setGlobalInfo :: g -> Document g n e -> Document g n e
+setGlobalInfo ninfo doc = doc { docGlobalInfo = ninfo }
 
 updateNetwork :: (Network.Network g n e -> Network.Network g n e)
                  -> Document g n e -> Document g n e
