@@ -173,7 +173,7 @@ singleSelectionDialog parentWindow dialogTitle strings initialSelection =
     }
 
 -- Dialog for selecting a single String
--- Returns Nothing if Cancel was pressed, otherwise it returns the selected string
+-- Returns Nothing if Cancel was pressed, otherwise it returns the selected item
 singleSelectionDialogTyped :: (Labeled b, Eq b, Show b) => Window a -> String -> [b] -> (Maybe b)
                       -> IO (Maybe b)
 singleSelectionDialogTyped _ _ [] _ =

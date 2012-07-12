@@ -71,6 +71,17 @@ empty g n e p =
     , docGlobalInfo   = g
     }
 
+-- | A document with an initial network
+initial :: (InfoKind e g, InfoKind n g) => g -> n -> e -> P.Palette n -> Document g n e
+initial g n e p =
+    Document
+    { docNetwork      = Map.fromList [(toNetworkId "p1", Network.empty g n e p)]
+    , docNetworkSel   = toNetworkId "p1"
+    , docSelection    = NoSelection
+    , docEmptyNetwork = Network.empty g n e p
+    , docGlobalInfo   = g
+    }
+
 {-
 -- | An empty document
 empty :: (InfoKind e g, InfoKind n g) => g -> n -> e -> Document g n e

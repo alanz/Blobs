@@ -51,7 +51,8 @@ getConfig state =
     }
 
 create :: (InfoKind n g, InfoKind e g
-          , Parse g, Show g, Descriptor g, Data (Network.Network g n e)) =>
+          , Parse g, Show g, Descriptor g
+          , Data (Network.Network g n e)) =>
           State.State g n e -> g -> n -> e -> P.Palette n -> GraphOps g n e -> IO ()
 create state g n e p ops =
   do{ theFrame <- frame [ text := "Diagram editor"
