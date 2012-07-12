@@ -18,7 +18,7 @@ import Graphics.UI.WXCore(windowGetMousePosition)
 
 -- | Context menu for empty area of canvas
 canvas :: (InfoKind n g, Show g, Parse g, Descriptor g) =>
-          Frame () -> State g n e -> IO ()
+          Frame () -> State g n e c -> IO ()
 canvas theFrame state =
   do{ contextMenu <- menuPane []
     ; menuItem contextMenu
@@ -39,7 +39,7 @@ canvas theFrame state =
     ; objectDelete contextMenu
     }
 
-addNodeItem :: (InfoKind n g) => Frame () -> State g n e -> IO ()
+addNodeItem :: (InfoKind n g) => Frame () -> State g n e c -> IO ()
 addNodeItem theFrame state =
   do{ mousePoint <- windowGetMousePosition theFrame
     ; ppi <- getScreenPPI
@@ -49,7 +49,7 @@ addNodeItem theFrame state =
 
 -- | Context menu for an edge
 edge :: (InfoKind n g, InfoKind e g) =>
-        EdgeNr -> Frame () -> DoublePoint -> State g n e -> IO ()
+        EdgeNr -> Frame () -> DoublePoint -> State g n e c -> IO ()
 edge edgeNr theFrame mousepoint state =
   do{ contextMenu <- menuPane []
 
@@ -89,7 +89,7 @@ edge edgeNr theFrame mousepoint state =
     }
 
 -- | Context menu for a 'via' point
-via :: Frame () -> State g n e -> IO ()
+via :: Frame () -> State g n e c -> IO ()
 via theFrame state =
   do{ contextMenu <- menuPane []
     ; menuItem contextMenu
@@ -102,7 +102,7 @@ via theFrame state =
     }
 
 -- | Context menu for a node
-node :: (InfoKind n g, InfoKind e g) => Int -> Frame () -> State g n e -> IO ()
+node :: (InfoKind n g, InfoKind e g) => Int -> Frame () -> State g n e c -> IO ()
 node nodeNr theFrame state =
   do{ contextMenu <- menuPane []
 

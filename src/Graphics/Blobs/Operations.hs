@@ -11,17 +11,17 @@ import qualified Data.IntMap as IntMap
 --   on the graph network.  An operation is simply executed in the I/O monad,
 --   taking the entire state as argument - it is up to the action to do any
 --   state updates it wants to.
-data GraphOps g n e = GraphOps { ioOps :: [ (String, IOOp g n e) ] }
+data GraphOps g n e c = GraphOps { ioOps :: [ (String, IOOp g n e c) ] }
 
-callGraphOp :: String -> GraphOps g n e -> State g n e -> IO ()
+callGraphOp :: String -> GraphOps g n e c -> State g n e c -> IO ()
 callGraphOp opName graphOps state =
   maybe (return ()) ($ state) (Prelude.lookup opName (ioOps graphOps))
 
-type PureOp g n e = -- (InfoKind n g, InfoKind e g)
+type PureOp g n e c = -- (InfoKind n g, InfoKind e g)
                        (g, IntMap.IntMap (Node n), IntMap.IntMap (Edge e))
                     -> (g, IntMap.IntMap (Node n), IntMap.IntMap (Edge e))
-type IOOp g n e   = -- (InfoKind n g, InfoKind e g) =>
-                       State g n e
+type IOOp g n e c   = -- (InfoKind n g, InfoKind e g) =>
+                       State g n e c
                     -> IO ()
 
 -- | In general, operations can be classified into pure and I/O variants.
@@ -30,7 +30,7 @@ type IOOp g n e   = -- (InfoKind n g, InfoKind e g) =>
 --   standard 'undo' menu item), and displayed immediately.  Use this
 --   helper 'pureGraphOp' to turn your pure function into an I/O action
 --   for the Operations menu.
-pureGraphOp :: (String, PureOp g n e) -> (String, IOOp g n e)
+pureGraphOp :: (String, PureOp g n e c) -> (String, IOOp g n e c)
 pureGraphOp (opName,operation) =
   (opName, \state-> do{ pDoc <- getDocument state
                       ; doc  <- PD.getDocument pDoc

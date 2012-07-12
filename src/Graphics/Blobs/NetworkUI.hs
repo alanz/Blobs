@@ -6,6 +6,7 @@ module Graphics.Blobs.NetworkUI
     ) where
 
 
+import Data.Aeson
 import Data.Data
 import Graphics.Blobs.Common
 import Graphics.Blobs.CommonIO
@@ -35,7 +36,7 @@ data Config = NFC
     }
     deriving (Read, Show)
 
-getConfig :: State.State g n e -> IO Config
+getConfig :: State.State g n e c -> IO Config
 getConfig state =
   do{ theFrame      <- State.getNetworkFrame state
     ; (x, y)        <- safeGetPosition theFrame
@@ -52,9 +53,10 @@ getConfig state =
 
 create :: (InfoKind n g, InfoKind e g
           , Parse g, Show g, Descriptor g
-          , Data (Network.Network g n e)) =>
-          State.State g n e -> g -> n -> e -> P.Palette n -> GraphOps g n e -> IO ()
-create state g n e p ops =
+          , Data (Network.Network g n e c)
+          , FromJSON c, ToJSON c, Show c, Data c) =>
+          State.State g n e c -> g -> n -> e -> c -> P.Palette n -> GraphOps g n e c -> IO ()
+create state g n e c p ops =
   do{ theFrame <- frame [ text := "Diagram editor"
                         , position      := pt 200 20
                         , clientSize    := sz 300 240 ]
@@ -67,7 +69,7 @@ create state g n e p ops =
     ; State.setPageSetupDialog initialPageSetupDialog state
 
     -- Drawing area
-    ; let (width, height) = Network.getCanvasSize (Network.empty g n e p)
+    ; let (width, height) = Network.getCanvasSize (Network.empty g n e c p)
     ; ppi <- getScreenPPI
     ; canvas <- scrolledWindow theFrame
         [ virtualSize   := sz (logicalToScreenX ppi width)
@@ -96,7 +98,7 @@ create state g n e p ops =
     ; fileMenu   <- menuPane [ text := "&File" ]
     ; menuItem fileMenu
         [ text := "New\tCtrl+N"
-        , on command := safetyNet theFrame $ newItem state g n e p
+        , on command := safetyNet theFrame $ newItem state g n e c p
         ]
     ; menuItem fileMenu
         [ text := "Open...\tCtrl+O"
@@ -229,7 +231,7 @@ create state g n e p ops =
             ) (ioOps ops)
 
     ; PD.initialise pDoc (PD.PD
-        { PD.document           = Document.empty g n e p
+        { PD.document           = Document.empty g n e c p
         , PD.history            = []
         , PD.future             = []
         , PD.limit              = Nothing
@@ -258,7 +260,7 @@ create state g n e p ops =
     }
 
 paintHandler :: (InfoKind n g, InfoKind e g, Descriptor g) =>
-                State.State g n e -> DC () -> IO ()
+                State.State g n e c -> DC () -> IO ()
 paintHandler state dc =
   do{ pDoc <- State.getDocument state
     ; doc <- PD.getDocument pDoc
@@ -270,7 +272,7 @@ extensions :: [(String, [String])]
 extensions = [ ("Blobs files (.blobs)", ["*.blobs"]) ]
 
 mouseEvent :: (InfoKind n g, InfoKind e g, Show g, Parse g, Descriptor g) =>
-              EventMouse -> ScrolledWindow () -> Frame () -> State.State g n e -> IO ()
+              EventMouse -> ScrolledWindow () -> Frame () -> State.State g n e c -> IO ()
 mouseEvent eventMouse canvas theFrame state = case eventMouse of
     MouseLeftDown mousePoint mods
         | shiftDown mods    -> leftMouseDownWithShift mousePoint state
@@ -286,7 +288,7 @@ mouseEvent eventMouse canvas theFrame state = case eventMouse of
         return ()
 
 keyboardEvent :: (InfoKind n g, InfoKind e g) =>
-                 Frame () -> State.State g n e -> EventKey -> IO ()
+                 Frame () -> State.State g n e c -> EventKey -> IO ()
 keyboardEvent theFrame state (EventKey theKey _ _) =
     case theKey of
         KeyDelete                       -> deleteKey state
@@ -298,23 +300,24 @@ keyboardEvent theFrame state (EventKey theKey _ _) =
         KeyDown                         -> downKey state
         _                               -> propagateEvent
 
-closeDocAndThen :: State.State g n e -> IO () -> IO ()
+closeDocAndThen :: State.State g n e c -> IO () -> IO ()
 closeDocAndThen state action =
   do{ pDoc <- State.getDocument state
     ; continue <- PD.isClosingOkay pDoc
     ; when continue $ action
     }
 
-newItem :: (InfoKind n g, InfoKind e g) => State.State g n e -> g -> n -> e -> P.Palette n -> IO ()
-newItem state g n e p =
+newItem :: (InfoKind n g, InfoKind e g) => State.State g n e c -> g -> n -> e -> c -> P.Palette n -> IO ()
+newItem state g n e c p =
     closeDocAndThen state $
       do{ pDoc <- State.getDocument state
-        ; PD.resetDocument Nothing (Document.empty g n e p) pDoc
+        ; PD.resetDocument Nothing (Document.empty g n e c p) pDoc
         ; repaintAll state
         }
 
-openItem :: (InfoKind n g, InfoKind e g, Data (Network.Network g n e)) =>
-            Frame () ->  State.State g n e -> IO ()
+openItem :: (InfoKind n g, InfoKind e g, Data (Network.Network g n e c),
+             Data c, FromJSON c) =>
+            Frame () ->  State.State g n e c -> IO ()
 openItem theFrame state =
   do{ mbfname <- fileOpenDialog
         theFrame
@@ -328,8 +331,9 @@ openItem theFrame state =
 
 -- Third argument: Nothing means exceptions are ignored (used in Configuration)
 --              Just f means exceptions are shown in a dialog on top of frame f
-openNetworkFile :: (InfoKind n g, InfoKind e g, Data (Network.Network g n e)) =>
-                   String -> State.State g n e -> Maybe (Frame ()) -> IO ()
+openNetworkFile :: (InfoKind n g, InfoKind e g, Data (Network.Network g n e c),
+                    Data c, FromJSON c) =>
+                   String -> State.State g n e c -> Maybe (Frame ()) -> IO ()
 openNetworkFile fname state exceptionsFrame =
   closeDocAndThen state $
   flip catch
@@ -348,7 +352,7 @@ openNetworkFile fname state exceptionsFrame =
         Right (networkAssocs, warnings, oldFormat) ->
   do{ -- "Open" document
     -- ; let newDoc = Document.setNetwork network (Document.empty undefined undefined undefined)
-    ; let newDoc = Document.setNetworkAssocs networkAssocs (Document.empty undefined undefined undefined undefined)
+    ; let newDoc = Document.setNetworkAssocs networkAssocs (Document.empty undefined undefined undefined undefined undefined)
     ; pDoc <- State.getDocument state
     ; PD.resetDocument (if null warnings then Just fname else Nothing)
                        newDoc pDoc
@@ -387,7 +391,7 @@ openNetworkFile fname state exceptionsFrame =
     ; repaintAll state
     }}}
 
-openPalette :: (InfoKind n g, Parse n) => Frame () ->  State.State g n e -> IO ()
+openPalette :: (InfoKind n g, Parse n) => Frame () ->  State.State g n e c -> IO ()
 openPalette theFrame state =
   do{ mbfname <- fileOpenDialog
         theFrame
@@ -402,7 +406,7 @@ openPalette theFrame state =
 -- Third argument: Nothing means exceptions are ignored (used in Configuration)
 --              Just f means exceptions are shown in a dialog on top of frame f
 openPaletteFile :: (InfoKind n g, Parse n) =>
-                   String -> State.State g n e -> Maybe (Frame ()) -> IO ()
+                   String -> State.State g n e c -> Maybe (Frame ()) -> IO ()
 openPaletteFile fname state exceptionsFrame =
   flip catch
     (\exc -> case exceptionsFrame of
@@ -428,7 +432,7 @@ openPaletteFile fname state exceptionsFrame =
 
 -- | Get the canvas size from the network and change the size of
 --   the widget accordingly
-applyCanvasSize :: State.State g n e -> IO ()
+applyCanvasSize :: State.State g n e c -> IO ()
 applyCanvasSize state =
   do{ pDoc <- State.getDocument state
     ; doc <- PD.getDocument pDoc
@@ -440,12 +444,13 @@ applyCanvasSize state =
                                      (logicalToScreenY ppi height) ]
     }
 
-saveToDisk :: (InfoKind n g, InfoKind e g, Data (Network.Network g n e)) =>
-              Frame () -> String -> Document.Document g n e -> IO Bool
+saveToDisk :: (InfoKind n g, InfoKind e g, Data (Network.Network g n e c),
+               ToJSON c) =>
+              Frame () -> String -> Document.Document g n e c -> IO Bool
 saveToDisk theFrame fileName doc =
     -- safeWriteFile theFrame fileName (NetworkFile.toString (Document.getNetwork doc))
     safeWriteFile theFrame fileName (NetworkFile.toStringAssocs (Document.getNetworkAssocs doc))
 
-exit :: State.State g n e -> IO ()
+exit :: State.State g n e c -> IO ()
 exit state =
     closeDocAndThen state $ propagateEvent

@@ -25,7 +25,7 @@ import qualified Graphics.Blobs.Network as Network
 import qualified Graphics.Blobs.Shape as Shape
 
 drawCanvas :: (InfoKind n g, InfoKind e g, Descriptor g) =>
-              Document g n e -> DC () -> DisplayOptions -> IO ()
+              Document g n e c -> DC () -> DisplayOptions -> IO ()
 drawCanvas doc dc opt =
   do{
 
@@ -57,7 +57,7 @@ h1 dc dcPPI e = logicalText dcPPI dc (DoublePoint 50 50)
 
 
 reallyDrawCanvas :: (InfoKind n g, InfoKind e g, Descriptor g) =>
-                    Document g n e -> Size -> DC () -> DisplayOptions -> IO ()
+                    Document g n e c -> Size -> DC () -> DisplayOptions -> IO ()
 reallyDrawCanvas doc ppi dc opt =
   do{
     -- draw global info on diagram
@@ -212,7 +212,7 @@ solidFill :: Colour -> [Prop (DC ())]
 solidFill colour = [ brushKind := BrushSolid, brushColor := wxcolor colour ]
 
 -- | Finds which node of the network is clicked by the mouse, if any
-clickedNode :: DoublePoint -> Document g n e -> Maybe Int
+clickedNode :: DoublePoint -> Document g n e c -> Maybe Int
 clickedNode clickedPoint doc =
     let network = getNetwork doc
         nodeAssocs = case getSelection doc of
@@ -229,14 +229,14 @@ nodeContains node clickedPoint =
       < kNODE_RADIUS
 
 -- | Finds which edge of the network is clicked by the mouse, if any
-clickedEdge :: DoublePoint -> Network.Network g n e -> Maybe Int
+clickedEdge :: DoublePoint -> Network.Network g n e c -> Maybe Int
 clickedEdge clickedPoint network =
     let assocs = Network.getEdgeAssocs network
     in case filter (\(_, edge) -> isJust (edgeContains edge clickedPoint network)) assocs of
         [] -> Nothing
         ((i, _):_) -> Just i
 
-edgeContains :: Network.Edge e -> DoublePoint -> Network.Network g n e -> Maybe Int
+edgeContains :: Network.Edge e -> DoublePoint -> Network.Network g n e c -> Maybe Int
 edgeContains edge clickedPoint network =
     let p0 = Network.getNodePosition network (Network.getEdgeFrom edge)
         p1 = Network.getNodePosition network (Network.getEdgeTo   edge)
@@ -251,7 +251,7 @@ edgeContains edge clickedPoint network =
          nrs -> Just (head nrs)
 
 -- | Finds which 'via' control point is clicked by the mouse, if any
-clickedVia :: DoublePoint -> Network.Network g n e -> Maybe (Int,Int)
+clickedVia :: DoublePoint -> Network.Network g n e c -> Maybe (Int,Int)
 clickedVia clickedPoint network =
     let allVia = concatMap (\ (k,e)-> zipWith (\n v->((k,n),v))
                                               [0..] (Network.getEdgeVia e))

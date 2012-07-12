@@ -16,7 +16,7 @@ import Graphics.UI.WX
 --import Graphics.UI.WXCore
 
 mouseDown :: (InfoKind n g, InfoKind e g, Show g, Parse g, Descriptor g) =>
-             Bool -> Point -> Frame () -> State g n e -> IO ()
+             Bool -> Point -> Frame () -> State g n e c -> IO ()
 mouseDown leftButton mousePoint theFrame state =
   do{ pDoc <- getDocument state
     ; doc <- PD.getDocument pDoc
@@ -63,7 +63,7 @@ mouseDown leftButton mousePoint theFrame state =
     }
 
 leftMouseDownWithShift :: (InfoKind n g, InfoKind e g) =>
-                          Point -> State g n e -> IO ()
+                          Point -> State g n e c -> IO ()
 leftMouseDownWithShift mousePoint state =
   do{ pDoc <- getDocument state
     ; doc <- PD.getDocument pDoc
@@ -86,7 +86,7 @@ leftMouseDownWithShift mousePoint state =
     }
 
 leftMouseDownWithMeta :: (InfoKind n g, InfoKind e g) =>
-                          Point -> State g n e -> IO ()
+                          Point -> State g n e c -> IO ()
 leftMouseDownWithMeta mousePoint state =
   do{ pDoc <- getDocument state
     ; doc <- PD.getDocument pDoc
@@ -121,7 +121,7 @@ leftMouseDownWithMeta mousePoint state =
                 Nothing -> return ()
     }
 
-leftMouseDrag :: Point -> ScrolledWindow () -> State g n e -> IO ()
+leftMouseDrag :: Point -> ScrolledWindow () -> State g n e c -> IO ()
 leftMouseDrag mousePoint canvas state =
   do{ dragging <- getDragging state
     ; ppi <- getScreenPPI
@@ -142,7 +142,7 @@ leftMouseDrag mousePoint canvas state =
             }
     }
 
-leftMouseUp :: Point -> State g n e -> IO ()
+leftMouseUp :: Point -> State g n e c -> IO ()
 leftMouseUp mousePoint state =
   do{ dragging <- getDragging state
     ; ppi <- getScreenPPI
@@ -163,30 +163,30 @@ leftMouseUp mousePoint state =
             }
     }
 
-deleteKey :: State g n e -> IO ()
+deleteKey :: State g n e c -> IO ()
 deleteKey state =
     deleteSelection state
 
-backspaceKey :: State g n e -> IO ()
+backspaceKey :: State g n e c -> IO ()
 backspaceKey state =
     deleteSelection state
 
-f2Key :: Frame () -> State g n e -> IO ()		-- due for demolition
+f2Key :: Frame () -> State g n e c -> IO ()		-- due for demolition
 f2Key theFrame state =
     renameNode theFrame state
 
-pressRKey :: Frame () -> State g n e -> IO ()
+pressRKey :: Frame () -> State g n e c -> IO ()
 pressRKey theFrame state =
     renameNode theFrame state
 
-pressIKey :: (InfoKind n g, InfoKind e g) => Frame () -> State g n e -> IO ()
+pressIKey :: (InfoKind n g, InfoKind e g) => Frame () -> State g n e c -> IO ()
 pressIKey theFrame state =
     reinfoNodeOrEdge theFrame state
 
-upKey :: State g n e -> IO ()
+upKey :: State g n e c -> IO ()
 upKey state =
     changeNamePosition True state
 
-downKey :: State g n e -> IO ()
+downKey :: State g n e c -> IO ()
 downKey state =
     changeNamePosition False state

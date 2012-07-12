@@ -28,6 +28,7 @@ main = start $
                              undefined	-- dummy node state (for typechecker)
                              undefined	-- dummy edge state (for typechecker)
                              -- P.empty    -- initial palette
+                             undefined  -- initial network config params
                              simple     -- initial palette
                              graphOps	-- operations available from menu
     }
@@ -56,7 +57,7 @@ instance GuiGlobalEdit Int () where
   editDialogWithGlobal parentWindow dialogTitle initial global = aTextDialog parentWindow dialogTitle initial
 
 -- A simple range of operations on a graph network.
-graphOps :: GraphOps () [Int] [Int]
+graphOps :: GraphOps () [Int] [Int] ()
 graphOps = GraphOps { ioOps = map pureGraphOp
                                   [ ("push numbers one step", onePush)
                                   , ("clear all numbers", revert) ] }

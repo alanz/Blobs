@@ -35,7 +35,7 @@ import Data.Char (isSpace)
 
 import Graphics.UI.WX hiding (Selection)
 
-changeNamePosition :: Bool -> State g n e -> IO ()
+changeNamePosition :: Bool -> State g n e c -> IO ()
 changeNamePosition above state =
   do{ pDoc <- getDocument state
     ; doc <- PD.getDocument pDoc
@@ -50,7 +50,7 @@ changeNamePosition above state =
         _ -> return ()
     }
 
-changeNodeShape :: InfoKind n g => String -> n -> State g n e -> IO ()
+changeNodeShape :: InfoKind n g => String -> n -> State g n e c -> IO ()
 changeNodeShape shapename info state =
   do{ pDoc <- getDocument state
     ; doc <- PD.getDocument pDoc
@@ -65,7 +65,7 @@ changeNodeShape shapename info state =
         _ -> return ()
     }
 
-deleteSelection :: State g n e -> IO ()
+deleteSelection :: State g n e c -> IO ()
 deleteSelection state =
   do{ pDoc <- getDocument state
     ; doc <- PD.getDocument pDoc
@@ -94,7 +94,7 @@ deleteSelection state =
         _ -> return ()
     }
 
-createNode :: InfoKind n g => DoublePoint -> State g n e -> IO ()
+createNode :: InfoKind n g => DoublePoint -> State g n e c -> IO ()
 createNode mousePoint state =
   do{ pDoc <- getDocument state
     ; doc1 <- PD.getDocument pDoc
@@ -112,21 +112,21 @@ createNode mousePoint state =
     ; repaintAll state
     }
 
-selectNothing :: State g n e -> IO ()
+selectNothing :: State g n e c -> IO ()
 selectNothing state =
   do{ pDoc <- getDocument state
     ; PD.superficialUpdateDocument (setSelection NoSelection) pDoc
     ; repaintAll state
     }
 
-selectEdge :: Int -> State g n e -> IO ()
+selectEdge :: Int -> State g n e c -> IO ()
 selectEdge edgeNr state =
   do{ pDoc <- getDocument state
     ; PD.superficialUpdateDocument (setSelection (EdgeSelection edgeNr)) pDoc
     ; repaintAll state
     }
 
-createEdge :: (InfoKind e g) => Int -> Int -> State g n e -> IO ()
+createEdge :: (InfoKind e g) => Int -> Int -> State g n e c -> IO ()
 createEdge fromNodeNr toNodeNr state =
   do{ pDoc <- getDocument state
     ; PD.updateDocument "add edge"
@@ -136,7 +136,7 @@ createEdge fromNodeNr toNodeNr state =
     ; repaintAll state
     }
 
-createVia :: DoublePoint -> State g n e -> IO ()
+createVia :: DoublePoint -> State g n e c -> IO ()
 createVia mousepoint state =
   do{ pDoc <- getDocument state
     ; doc <- PD.getDocument pDoc
@@ -155,7 +155,7 @@ createVia mousepoint state =
         _ -> return ()
     }
 
-selectVia :: Int -> Int -> State g n e -> IO ()
+selectVia :: Int -> Int -> State g n e c -> IO ()
 selectVia edgeNr viaNr state =
   do{ pDoc <- getDocument state
     ; PD.superficialUpdateDocument (setSelection (ViaSelection edgeNr viaNr))
@@ -163,7 +163,7 @@ selectVia edgeNr viaNr state =
     ; repaintAll state
     }
 
-pickupVia :: Int -> Int -> DoublePoint -> State g n e -> IO ()
+pickupVia :: Int -> Int -> DoublePoint -> State g n e c -> IO ()
 pickupVia edgeNr viaNr mousePoint state =
   do{ pDoc <- getDocument state
     ; doc <- PD.getDocument pDoc
@@ -173,14 +173,14 @@ pickupVia edgeNr viaNr mousePoint state =
     ; selectVia edgeNr viaNr state
     }
 
-selectNode :: Int -> State g n e -> IO ()
+selectNode :: Int -> State g n e c -> IO ()
 selectNode nodeNr state =
   do{ pDoc <- getDocument state
     ; PD.superficialUpdateDocument (setSelection (NodeSelection nodeNr)) pDoc
     ; repaintAll state
     }
 
-pickupNode :: Int -> DoublePoint -> State g n e -> IO ()
+pickupNode :: Int -> DoublePoint -> State g n e c -> IO ()
 pickupNode nodeNr mousePoint state =
   do{ pDoc <- getDocument state
     ; doc <- PD.getDocument pDoc
@@ -190,7 +190,7 @@ pickupNode nodeNr mousePoint state =
     ; selectNode nodeNr state
     }
 
-dragNode :: Int -> DoublePoint -> ScrolledWindow () -> State g n e -> IO ()
+dragNode :: Int -> DoublePoint -> ScrolledWindow () -> State g n e c -> IO ()
 dragNode nodeNr mousePoint canvas state =
   do{ pDoc <- getDocument state
     ; doc <- PD.getDocument pDoc
@@ -211,7 +211,7 @@ dragNode nodeNr mousePoint canvas state =
         }
     }
 
-dropNode :: Bool -> Int -> DoublePoint -> DoublePoint -> State g n e -> IO ()
+dropNode :: Bool -> Int -> DoublePoint -> DoublePoint -> State g n e c -> IO ()
 dropNode hasMoved nodeNr offset mousePoint state =
   do{ when hasMoved $
       do{ let newPosition = mousePoint `subtractDoublePoint` offset
@@ -225,7 +225,7 @@ dropNode hasMoved nodeNr offset mousePoint state =
     ; setDragging Nothing state
     }
 
-dragVia :: Int -> Int -> DoublePoint -> ScrolledWindow () -> State g n e -> IO ()
+dragVia :: Int -> Int -> DoublePoint -> ScrolledWindow () -> State g n e c -> IO ()
 dragVia edgeNr viaNr mousePoint canvas state =
   do{ pDoc <- getDocument state
     ; doc <- PD.getDocument pDoc
@@ -245,7 +245,7 @@ dragVia edgeNr viaNr mousePoint canvas state =
         }
     }
 
-dropVia :: Bool -> Int -> Int -> DoublePoint -> DoublePoint -> State g n e -> IO ()
+dropVia :: Bool -> Int -> Int -> DoublePoint -> DoublePoint -> State g n e c -> IO ()
 dropVia hasMoved edgeNr viaNr offset mousePoint state =
   do{ when hasMoved $
       do{ let newPosition = mousePoint `subtractDoublePoint` offset
@@ -260,7 +260,7 @@ dropVia hasMoved edgeNr viaNr offset mousePoint state =
     }
 
 selectMultiple :: Maybe (DoublePoint,DoublePoint) -> [Int] -> [(Int,Int)]
-                  -> State g n e -> IO ()
+                  -> State g n e c -> IO ()
 selectMultiple areaRect nodeNrs viaNrs state =
   do{ pDoc <- getDocument state
     ; PD.superficialUpdateDocument
@@ -269,14 +269,14 @@ selectMultiple areaRect nodeNrs viaNrs state =
     ; repaintAll state
     }
 
-pickupMultiple :: [Int] -> [(Int,Int)] -> DoublePoint -> State g n e -> IO ()
+pickupMultiple :: [Int] -> [(Int,Int)] -> DoublePoint -> State g n e c -> IO ()
 pickupMultiple _nodeNrs _viaNrs mousePoint state =
   do{ setDragging (Just (False, mousePoint)) state
 --  ; selectMultiple Nothing nodeNrs viaNrs state	-- already selected
     }
 
 dragMultiple :: [Int] -> [(Int,Int)] -> DoublePoint -> ScrolledWindow ()
-                -> State g n e -> IO ()
+                -> State g n e c -> IO ()
 dragMultiple nodeNrs viaNrs mousePoint canvas state =
   do{ pDoc <- getDocument state
  -- ; doc <- PD.getDocument pDoc
@@ -295,8 +295,8 @@ dragMultiple nodeNrs viaNrs mousePoint canvas state =
         }
     }
 
-updateMultiple :: [Int] -> [(Int,Int)] -> DoublePoint -> Network g n e
-                                                      -> Network g n e
+updateMultiple :: [Int] -> [(Int,Int)] -> DoublePoint -> Network g n e c
+                                                      -> Network g n e c
 updateMultiple ns vs o network =
         ( foldr (\n z-> updateNode n (offsetNode o) . z) id ns
         . foldr (\ (e,v) z-> updateVia e v (offsetVia o e v) . z) id vs
@@ -307,7 +307,7 @@ updateMultiple ns vs o network =
                                `translate` off
 
 dropMultiple :: Bool -> [Int] -> [(Int,Int)] -> DoublePoint -> DoublePoint
-                -> State g n e -> IO ()
+                -> State g n e c -> IO ()
 dropMultiple hasMoved nodeNrs viaNrs originPoint mousePoint state =
   do{ when hasMoved $
       do{ pDoc <- getDocument state
@@ -322,7 +322,7 @@ dropMultiple hasMoved nodeNrs viaNrs originPoint mousePoint state =
     ; setDragging Nothing state
     }
 
-pickupArea :: DoublePoint -> State g n e -> IO ()
+pickupArea :: DoublePoint -> State g n e c -> IO ()
 pickupArea mousePoint state =
   do{ setDragging (Just (False, mousePoint)) state
     ; selectMultiple (Just (mousePoint,mousePoint)) [] [] state
@@ -330,7 +330,7 @@ pickupArea mousePoint state =
 
 -- dragArea is not like dragging a selection.  It does not move anything.
 -- It only adds items into a multiple selection.
-dragArea :: DoublePoint -> State g n e -> IO ()
+dragArea :: DoublePoint -> State g n e c -> IO ()
 dragArea mousePoint state =
   do{ pDoc <- getDocument state
     ; doc  <- PD.getDocument pDoc
@@ -351,7 +351,7 @@ dragArea mousePoint state =
           . getEdgeAssocs ) network
         )
 
-dropArea :: DoublePoint -> DoublePoint -> State g n e -> IO ()
+dropArea :: DoublePoint -> DoublePoint -> State g n e c -> IO ()
 dropArea _origin mousePoint state =
   do{ dragArea mousePoint state	-- calculate enclosure area
     ; pDoc <- getDocument state
@@ -368,7 +368,7 @@ dropArea _origin mousePoint state =
     }
 
 
-renameNode :: Frame () -> State g n e -> IO ()
+renameNode :: Frame () -> State g n e c -> IO ()
 renameNode theFrame state =
   do{ pDoc <- getDocument state
     ; doc <- PD.getDocument pDoc
@@ -388,7 +388,7 @@ renameNode theFrame state =
         _ -> return ()
     }
 
-reArityNode :: Frame () -> State g n e -> IO ()
+reArityNode :: Frame () -> State g n e c -> IO ()
 reArityNode theFrame state =
   do{ pDoc <- getDocument state
     ; doc <- PD.getDocument pDoc
@@ -421,7 +421,7 @@ reArityNode theFrame state =
     }
 
 reinfoNodeOrEdge :: (InfoKind n g, InfoKind e g) =>
-                    Frame () -> State g n e -> IO ()
+                    Frame () -> State g n e c -> IO ()
 reinfoNodeOrEdge theFrame state =
   do{ pDoc <- getDocument state
     ; doc <- PD.getDocument pDoc
@@ -487,7 +487,7 @@ reinfoNodeOrEdge theFrame state =
     }
 
 reinfoNodeOrEdgeUser :: (InfoKind n g, InfoKind e g) =>
-                    Frame () -> State g n e -> IO ()
+                    Frame () -> State g n e c -> IO ()
 reinfoNodeOrEdgeUser theFrame state =
   do{ pDoc <- getDocument state
     ; doc <- PD.getDocument pDoc
@@ -566,10 +566,10 @@ reinfoNodeOrEdgeUser theFrame state =
 
 -- ---------------------------------------------------------------------
 
-levelUpNode :: Frame () -> State g n e -> IO ()
+levelUpNode :: Frame () -> State g n e c -> IO ()
 levelUpNode theFrame state = undefined
 
-levelDownNode :: Frame () -> State g n e -> IO ()
+levelDownNode :: Frame () -> State g n e c -> IO ()
 levelDownNode theFrame state =
   do{ pDoc <- getDocument state
     ; doc <- PD.getDocument pDoc
@@ -603,7 +603,7 @@ levelDownNode theFrame state =
 -- ---------------------------------------------------------------------
 
 changePage :: (Show g, Parse g, Descriptor g, GuiEdit g) =>
-                    Frame () -> State g n e -> IO ()
+                    Frame () -> State g n e c -> IO ()
 changePage theFrame state =
   do{ pDoc <- getDocument state
     ; doc <- PD.getDocument pDoc
@@ -626,8 +626,9 @@ changePage theFrame state =
 
 -- ---------------------------------------------------------------------
 
-showStuff :: (Show g, Parse g, Descriptor g, GuiEdit g, InfoKind e g, InfoKind n g) =>
-                    Frame () -> State g n e -> IO ()
+showStuff :: (Show g, Parse g, Descriptor g, GuiEdit g, InfoKind e g, InfoKind n g,
+              Show c) =>
+                    Frame () -> State g n e c -> IO ()
 showStuff theFrame state =
   do{ pDoc <- getDocument state
     ; doc <- PD.getDocument pDoc
@@ -675,7 +676,7 @@ editEdgeInfo theFrame _title info =
 -- ---------------------------------------------------------------------
 
 changeGlobalInfo :: (Show g, Parse g, Descriptor g, GuiEdit g) =>
-                    Frame () -> State g n e -> IO ()
+                    Frame () -> State g n e c -> IO ()
 changeGlobalInfo theFrame state =
   do{ pDoc <- getDocument state
     ; doc <- PD.getDocument pDoc

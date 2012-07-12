@@ -71,12 +71,13 @@ import qualified Graphics.Blobs.Palette as P
 import qualified Graphics.Blobs.Shape as Shape
 import Data.Aeson.TH
 
-data Network _g n e = Network
+data Network _g n e c = Network
     { networkNodes      :: !(IntMap.IntMap (Node n)) -- ^ maps node numbers to nodes
     , networkEdges      :: !(IntMap.IntMap (Edge e)) -- ^ maps edge numbers to edges
     , networkPalette    :: P.Palette n
     , networkCanvasSize :: (Double, Double)
     -- , networkInfo       :: g
+    , networkConfig     :: c
     } deriving (Show, Data, Typeable)
 
 data Edge e = Edge
@@ -103,21 +104,22 @@ type ViaNr  = Int
 type PortNr = Int
 
 -- | Create an empty network
-empty :: (InfoKind n g, InfoKind e g) => g -> n -> e -> P.Palette n -> Network g n e
-empty _g _ _ p = Network
+empty :: (InfoKind n g, InfoKind e g) => g -> n -> e -> c -> P.Palette n -> Network g n e c
+empty _g _ _ c p = Network
     { networkNodes      = IntMap.empty
     , networkEdges      = IntMap.empty
     -- , networkPalette    = P.empty
     , networkPalette    = p
     , networkCanvasSize = (15, 9)
     -- , networkInfo       = g
+    , networkConfig = c
     }
 
 -- | Map a function over the nodes, possibly changes the type
 --   of the Network (i.e. the kind of values stored in the
 --   probability tables)
 mapNodeNetwork :: InfoKind m g =>
-                  (Node n->Node m) -> Network g n e -> Network g m e
+                  (Node n->Node m) -> Network g n e c -> Network g m e c
 mapNodeNetwork nodeFun network =
     let numberedNodes = getNodeAssocs network
         newNodes = [ (nr, nodeFun node) | (nr, node) <- numberedNodes ]
@@ -127,6 +129,7 @@ mapNodeNetwork nodeFun network =
         , networkPalette = fmap (const blank) $ networkPalette network
         , networkCanvasSize = networkCanvasSize network
         -- , networkInfo = networkInfo network
+        , networkConfig = networkConfig network
         }
 
 constructEdge :: NodeNr -> PortNr -> NodeNr -> PortNr
@@ -190,52 +193,52 @@ constructNode name position nameAbove shape ninfo arity =
         , nodeArity     = arity
         }
 
-getNodeName :: Network g n e -> NodeNr -> String
+getNodeName :: Network g n e c -> NodeNr -> String
 getNodeName network nodeNr = nodeName (networkNodes network IntMap.! nodeNr)
 
-setNodeName :: NodeNr -> String -> Network g n e -> Network g n e
+setNodeName :: NodeNr -> String -> Network g n e c -> Network g n e c
 setNodeName nodeNr name network =
     network { networkNodes = IntMap.insert nodeNr (node { nodeName = name }) (networkNodes network) }
   where node = networkNodes network IntMap.! nodeNr
 
-getNodePosition :: Network g n e -> NodeNr -> DoublePoint
+getNodePosition :: Network g n e c -> NodeNr -> DoublePoint
 getNodePosition network nodeNr = nodePosition (networkNodes network IntMap.! nodeNr)
 
-setNodePosition :: NodeNr -> DoublePoint -> Network g n e -> Network g n e
+setNodePosition :: NodeNr -> DoublePoint -> Network g n e c -> Network g n e c
 setNodePosition nodeNr position network =
     network { networkNodes = IntMap.insert nodeNr (node { nodePosition = position }) (networkNodes network) }
   where node = networkNodes network IntMap.! nodeNr
 
-getNodeNameAbove :: Network g n e -> NodeNr -> Bool
+getNodeNameAbove :: Network g n e c -> NodeNr -> Bool
 getNodeNameAbove network nodeNr = nodeNameAbove (networkNodes network IntMap.! nodeNr)
 
-setNodeNameAbove :: NodeNr -> Bool -> Network g n e -> Network g n e
+setNodeNameAbove :: NodeNr -> Bool -> Network g n e c -> Network g n e c
 setNodeNameAbove nodeNr nameAbove network =
     network { networkNodes = IntMap.insert nodeNr (node { nodeNameAbove = nameAbove }) (networkNodes network) }
   where node = networkNodes network IntMap.! nodeNr
 
-getNodeShape :: Network g n e -> NodeNr -> Either String Shape.Shape
+getNodeShape :: Network g n e c -> NodeNr -> Either String Shape.Shape
 getNodeShape network nodeNr = nodeShape (networkNodes network IntMap.! nodeNr)
 
-setNodeShape :: NodeNr -> Either String Shape.Shape -> Network g n e -> Network g n e
+setNodeShape :: NodeNr -> Either String Shape.Shape -> Network g n e c -> Network g n e c
 setNodeShape nodeNr shape network =
     network { networkNodes = IntMap.insert nodeNr (node { nodeShape = shape })
                                            (networkNodes network) }
   where node = networkNodes network IntMap.! nodeNr
 
-getNodeInfo :: Network g n e -> NodeNr -> n
+getNodeInfo :: Network g n e c -> NodeNr -> n
 getNodeInfo network nodeNr = nodeInfo (networkNodes network IntMap.! nodeNr)
 
-setNodeInfo :: NodeNr -> n -> Network g n e -> Network g n e
+setNodeInfo :: NodeNr -> n -> Network g n e c -> Network g n e c
 setNodeInfo nodeNr ninfo network =
     network { networkNodes = IntMap.insert nodeNr (node { nodeInfo = ninfo }) (networkNodes network) }
   where node = networkNodes network IntMap.! nodeNr
 
-getNodeArity :: Network g n e -> NodeNr -> Maybe (PortNr,PortNr)
+getNodeArity :: Network g n e c -> NodeNr -> Maybe (PortNr,PortNr)
 getNodeArity network nodeNr = nodeArity (networkNodes network IntMap.! nodeNr)
 
-setNodeArity :: NodeNr -> Maybe (PortNr,PortNr) -> Network g n e
-                -> Network g n e
+setNodeArity :: NodeNr -> Maybe (PortNr,PortNr) -> Network g n e c
+                -> Network g n e c
 setNodeArity nodeNr arity network =
     network { networkNodes = IntMap.insert nodeNr (node { nodeArity = arity })
                                            (networkNodes network) }
@@ -279,21 +282,21 @@ setArity :: Maybe (PortNr,PortNr) -> Node a -> Node a
 setArity arity node = node { nodeArity = arity }
 
 -- | Get the next unused node number
-getUnusedNodeNr :: Network g n e -> NodeNr
+getUnusedNodeNr :: Network g n e c -> NodeNr
 getUnusedNodeNr network | null used = 1
                         | otherwise = maximum used + 1
   where
     used = IntMap.keys (networkNodes network)
 
 -- | Get the next unused edge number
-getUnusedEdgeNr :: Network g n e -> EdgeNr
+getUnusedEdgeNr :: Network g n e c -> EdgeNr
 getUnusedEdgeNr network | null used = 1
                         | otherwise = maximum used + 1
   where
     used = IntMap.keys (networkEdges network)
 
 -- | Get the node numbers of the parents of a given node
-getParents :: Network g n e -> NodeNr -> [NodeNr]
+getParents :: Network g n e c -> NodeNr -> [NodeNr]
 getParents network child =
     [ parent
     | edge <- getEdges network
@@ -305,7 +308,7 @@ type ParentMap = IntMap.IntMap [NodeNr]
 
 -- | getParents is quite expensive (see above) and so
 --   we store the parent relationship in an IntMap
-getParentMap :: Network g n e -> ParentMap
+getParentMap :: Network g n e c -> ParentMap
 getParentMap network =
     IntMap.fromList
         [ (nodeNr, getParents network nodeNr)
@@ -313,7 +316,7 @@ getParentMap network =
         ]
 
 -- | Get the node numbers of the children of a given node
-getChildren :: Network g n e -> NodeNr -> [NodeNr]
+getChildren :: Network g n e c -> NodeNr -> [NodeNr]
 getChildren network parent =
     [ child
     | edge <- getEdges network
@@ -323,7 +326,7 @@ getChildren network parent =
 
 
 -- | Get node with given index, raises exception if node number does not exist
-getNode :: NodeNr -> Network g n e -> Node n
+getNode :: NodeNr -> Network g n e c -> Node n
 getNode nodeNr network
     | IntMap.member nodeNr nodesMap = nodesMap IntMap.! nodeNr
     | otherwise = internalError "Network" "getNode" "illegal node number"
@@ -331,32 +334,32 @@ getNode nodeNr network
     nodesMap = networkNodes network
 
 -- | Get edge with given index, raises exception if edge number does not exist
-getEdge :: EdgeNr -> Network g n e -> Edge e
+getEdge :: EdgeNr -> Network g n e c -> Edge e
 getEdge edgeNr network = networkEdges network IntMap.! edgeNr
 
 -- | Get all of the nodes in the network
-getNodes :: Network g n e -> [Node n]
+getNodes :: Network g n e c -> [Node n]
 getNodes network = IntMap.elems (networkNodes network)
 
 -- | Get all of the edges in the network
-getEdges :: Network g n e -> [Edge e]
+getEdges :: Network g n e c -> [Edge e]
 getEdges network = IntMap.elems (networkEdges network)
 
 -- | Get all of the node numbers in the network
-getNodeNrs :: Network g n e -> [NodeNr]
+getNodeNrs :: Network g n e c -> [NodeNr]
 getNodeNrs network = IntMap.keys (networkNodes network)
 
-getPalette :: Network g n e -> P.Palette n
+getPalette :: Network g n e c -> P.Palette n
 getPalette network = networkPalette network
 
-getCanvasSize :: Network g n e -> (Double, Double)
+getCanvasSize :: Network g n e c -> (Double, Double)
 getCanvasSize network = networkCanvasSize network
 
 -- getGlobalInfo :: Network g n e -> g
 -- getGlobalInfo network = networkInfo network
 
 -- | Find the number of an edge given start and end node number
-findEdge :: NodeNr -> NodeNr -> Network g n e -> Maybe EdgeNr
+findEdge :: NodeNr -> NodeNr -> Network g n e c -> Maybe EdgeNr
 findEdge fromNodeNr toNodeNr network =
     let hits = IntMap.filter
                     (sameFromAndTo (Edge { edgeFrom = fromNodeNr
@@ -371,7 +374,7 @@ findEdge fromNodeNr toNodeNr network =
         _ -> Nothing
 
 -- | Find node numbers given a node name
-findNodeNrsByName :: String -> Network g n e -> [NodeNr]
+findNodeNrsByName :: String -> Network g n e c -> [NodeNr]
 findNodeNrsByName theNodeName network =
     [ nodeNr
     | nodeNr <- getNodeNrs network
@@ -379,32 +382,32 @@ findNodeNrsByName theNodeName network =
     ]
 
 -- | Get a list of pairs where each pair contains a node number and the corresponding node
-getNodeAssocs :: Network g n e -> [(NodeNr, Node n)]
+getNodeAssocs :: Network g n e c -> [(NodeNr, Node n)]
 getNodeAssocs network = IntMap.assocs (networkNodes network)
 
-setNodeAssocs :: [(NodeNr, Node n)] -> Network g n e -> Network g n e
+setNodeAssocs :: [(NodeNr, Node n)] -> Network g n e c -> Network g n e c
 setNodeAssocs nodeAssocs network =
     network { networkNodes = IntMap.fromList nodeAssocs }
 
 -- | Get a list of pairs where each pair contains a edge number and the corresponding edge
-getEdgeAssocs :: Network g n e -> [(EdgeNr, Edge e)]
+getEdgeAssocs :: Network g n e c -> [(EdgeNr, Edge e)]
 getEdgeAssocs network = IntMap.assocs (networkEdges network)
 
-setEdgeAssocs :: [(EdgeNr, Edge e)] -> Network g n e -> Network g n e
+setEdgeAssocs :: [(EdgeNr, Edge e)] -> Network g n e c -> Network g n e c
 setEdgeAssocs edgeAssocs network =
     network { networkEdges = IntMap.fromList edgeAssocs }
 
 -- | Create a string that describes the network
-dumpNetwork :: InfoKind e g => Network g String e -> String
+dumpNetwork :: InfoKind e g => Network g String e c -> String
 dumpNetwork network = show (getNodeAssocs network) ++ "\n" ++ show (getEdgeAssocs network)
 
 -- | Test for existence of a node number
-nodeExists :: NodeNr ->  Network g n e -> Bool
+nodeExists :: NodeNr ->  Network g n e c -> Bool
 nodeExists nodeNr network =
     IntMap.member nodeNr (networkNodes network)
 
 -- | Test for existence of an edge number
-edgeExists :: EdgeNr ->  Network g n e -> Bool
+edgeExists :: EdgeNr ->  Network g n e c -> Bool
 edgeExists edgeNr network =
     IntMap.member edgeNr (networkEdges network)
 
@@ -414,9 +417,9 @@ edgeExists edgeNr network =
 
 -- | Add a node to the network
 addNode :: InfoKind n g
-        => Network g n e           -- ^ the network to add the node to
-        -> (NodeNr, Network g n e) -- ^ the number of the new node and
-                                   --   the extended network
+        => Network g n e c           -- ^ the network to add the node to
+        -> (NodeNr, Network g n e c) -- ^ the number of the new node and
+                                     --   the extended network
 addNode network =
     addNodeEx   ("Node " ++ show nodeNr)
                 (DoublePoint 0.0 0.0)
@@ -428,7 +431,7 @@ addNode network =
   where
     nodeNr = getUnusedNodeNr network
 
-addNodes :: InfoKind n g => Int -> Network g n e -> ([NodeNr], Network g n e)
+addNodes :: InfoKind n g => Int -> Network g n e c -> ([NodeNr], Network g n e c)
 addNodes 0 network = ([], network)
 addNodes n network1 =
     let (nodeNr, network2) = addNode network1
@@ -438,7 +441,7 @@ addNodes n network1 =
 addNodeEx :: InfoKind n g =>
              String -> DoublePoint -> Bool -> Either String Shape.Shape -> n
              -> Maybe (PortNr,PortNr)
-             -> Network g n e -> (NodeNr, Network g n e)
+             -> Network g n e c -> (NodeNr, Network g n e c)
 addNodeEx name position labelAbove shape ninfo arity network =
     ( nodeNr
     , network { networkNodes = IntMap.insert nodeNr node (networkNodes network) }
@@ -449,7 +452,7 @@ addNodeEx name position labelAbove shape ninfo arity network =
 
 
 -- | Add an edge to the network.
-addEdge :: InfoKind e g => NodeNr -> NodeNr -> Network g n e -> Network g n e
+addEdge :: InfoKind e g => NodeNr -> NodeNr -> Network g n e c -> Network g n e c
 addEdge fromNodeNr toNodeNr network
     | any (sameFromAndTo edge) edgesList || -- prohibit double edges
       any (sameFromAndTo (reverseEdge edge)) edgesList = -- prohibit edges in opposite direction
@@ -474,7 +477,7 @@ addEdge fromNodeNr toNodeNr network
 -- | Add an edge to the network, with specific connection ports.
 addEdgeWithPorts :: InfoKind e g =>
                     NodeNr -> PortNr -> NodeNr -> PortNr
-                    -> Network g n e -> Network g n e
+                    -> Network g n e c -> Network g n e c
 addEdgeWithPorts fromNodeNr fromPortNr toNodeNr toPortNr network
     | any (sameFromAndTo edge) edgesList || -- prohibit double edges
       any (sameFromAndTo (reverseEdge edge)) edgesList = -- prohibit edges in opposite direction
@@ -490,13 +493,13 @@ addEdgeWithPorts fromNodeNr fromPortNr toNodeNr toPortNr network
  --             , edgeToPort = toPortNr }
     edgesList = IntMap.elems (networkEdges network)
 
-addEdges :: InfoKind e g => [(NodeNr,NodeNr)] -> Network g n e -> Network g n e
+addEdges :: InfoKind e g => [(NodeNr,NodeNr)] -> Network g n e c -> Network g n e c
 addEdges edgeTuples network =
   foldr (\(fromNr, toNr) net -> addEdge fromNr toNr net) network edgeTuples
 
 -- | Insert a new 'via' control point in the middle of an edge.
 newViaEdge :: EdgeNr -> ViaNr -> DoublePoint
-              -> Network g n e -> Network g n e
+              -> Network g n e c -> Network g n e c
 newViaEdge edgeNr viaNr point network =
     network { networkEdges = IntMap.adjust (\e->e{ edgeVia= take viaNr (edgeVia e)
                                                      ++[point]
@@ -506,7 +509,7 @@ newViaEdge edgeNr viaNr point network =
 
 -- | Remove node with given index, raises exception if node number does not exist.
 --   This function also removes all edges that start or end in this node.
-removeNode :: NodeNr ->  Network g n e -> Network g n e
+removeNode :: NodeNr ->  Network g n e c -> Network g n e c
 removeNode nodeNr network =
     let involvedEdges = [ i
                         | (i, edge) <- getEdgeAssocs network
@@ -519,7 +522,7 @@ removeNode nodeNr network =
 -- | Remove an edge from the network. The probability table of the target node is updated:
 --   the corresponding dimension is removed and all values are zeroed.
 --   An exception is raised if edge number does not exist.
-removeEdge :: EdgeNr -> Network g n e -> Network g n e
+removeEdge :: EdgeNr -> Network g n e c -> Network g n e c
 removeEdge edgeNr network =
     setNodeArity fromNodeNr (Just (fi,fo-1)) $
     setNodeArity toNodeNr   (Just (ti-1,to)) $
@@ -533,27 +536,30 @@ removeEdge edgeNr network =
 
 
 -- | Remove all edges from the network. The probability tables of all node are zeroed.
-removeAllEdges :: Network g n e -> Network g n e
+removeAllEdges :: Network g n e c -> Network g n e c
 removeAllEdges network =
     let networkWithoutEdges       = network { networkEdges = IntMap.empty }
     in  networkWithoutEdges
 
 -- | Remove a control point from an edge.
-removeVia :: EdgeNr -> ViaNr -> Network g n e -> Network g n e
+removeVia :: EdgeNr -> ViaNr -> Network g n e c -> Network g n e c
 removeVia edgeNr viaNr network =
     let remove n e = e { edgeVia = take n (edgeVia e)
                                    ++ drop (n+1) (edgeVia e) } in
     network { networkEdges = IntMap.adjust (remove viaNr)
                                     edgeNr (networkEdges network) }
 
-setPalette :: P.Palette n -> Network g n e -> Network g n e
+setPalette :: P.Palette n -> Network g n e c -> Network g n e c
 setPalette palette network = network { networkPalette = palette }
 
-setCanvasSize :: (Double, Double) -> Network g n e -> Network g n e
+setCanvasSize :: (Double, Double) -> Network g n e c -> Network g n e c
 setCanvasSize canvasSize network = network { networkCanvasSize = canvasSize }
 
 -- setGlobalInfo :: g -> Network g n e -> Network g n e
 -- setGlobalInfo ninfo network = network { networkInfo = ninfo }
+
+setConfig :: c -> Network g n e c -> Network g n e c
+setConfig  config network = network { networkConfig = config }
 
 {-----------------------------------
   Local functions
@@ -569,18 +575,18 @@ reverseEdge edge =
 
 -- | Update node with given number by applying the function to it
 --   Dangerous (wrt network consistency, do not export)
-updateNode :: NodeNr -> (Node n -> Node n) -> Network g n e -> Network g n e
+updateNode :: NodeNr -> (Node n -> Node n) -> Network g n e c -> Network g n e c
 updateNode nodeNr nodeFunction network =
     let node = getNode nodeNr network in
     network { networkNodes = IntMap.insert nodeNr (nodeFunction node)
                                            (networkNodes network) }
 
-updateEdge :: EdgeNr -> (Edge e -> Edge e) -> Network g n e -> Network g n e
+updateEdge :: EdgeNr -> (Edge e -> Edge e) -> Network g n e c -> Network g n e c
 updateEdge edgeNr edgeFunction network =
     network { networkEdges = IntMap.adjust edgeFunction edgeNr
                                     (networkEdges network) }
 
-updateVia :: EdgeNr -> ViaNr -> DoublePoint -> Network g n e -> Network g n e
+updateVia :: EdgeNr -> ViaNr -> DoublePoint -> Network g n e c -> Network g n e c
 updateVia edgeNr viaNr v network =
     network { networkEdges =
                   IntMap.adjust (\e-> e { edgeVia = take viaNr (edgeVia e)

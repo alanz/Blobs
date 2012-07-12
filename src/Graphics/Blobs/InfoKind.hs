@@ -15,7 +15,9 @@ import Data.Aeson
 --   write them to/from the user, and that there exists some method of
 --   determining the correctness of the value (completeness/consistency etc)
 --   against some global type.
-class (Eq a, Show a, ToJSON a, FromJSON a, Parse a, Data a, Typeable a, ToJSON g, FromJSON g, Data g, Typeable g, GuiEdit g, GuiGlobalEdit a g) =>
+class (Eq a, Show a, ToJSON a, FromJSON a, Parse a, Data a, Typeable a,
+                     ToJSON g, FromJSON g,          Data g, Typeable g, GuiEdit g,
+                     GuiGlobalEdit a g) =>
       InfoKind a g | a -> g where
     blank :: a
     check :: String -> g -> a -> [String]		-- returns warnings
