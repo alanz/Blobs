@@ -54,7 +54,7 @@ getConfig state =
 create :: (InfoKind n g, InfoKind e g
           , Parse g, Show g, Descriptor g
           , Data (Network.Network g n e c)
-          , FromJSON c, ToJSON c, Show c, Data c) =>
+          , NetworkConfig c) =>
           State.State g n e c -> g -> n -> e -> c -> P.Palette n -> GraphOps g n e c -> IO ()
 create state g n e c p ops =
   do{ theFrame <- frame [ text := "Diagram editor"
@@ -271,7 +271,8 @@ paintHandler state dc =
 extensions :: [(String, [String])]
 extensions = [ ("Blobs files (.blobs)", ["*.blobs"]) ]
 
-mouseEvent :: (InfoKind n g, InfoKind e g, Show g, Parse g, Descriptor g) =>
+mouseEvent :: (InfoKind n g, InfoKind e g, Show g, Parse g, Descriptor g,
+               NetworkConfig c) =>
               EventMouse -> ScrolledWindow () -> Frame () -> State.State g n e c -> IO ()
 mouseEvent eventMouse canvas theFrame state = case eventMouse of
     MouseLeftDown mousePoint mods
@@ -307,7 +308,8 @@ closeDocAndThen state action =
     ; when continue $ action
     }
 
-newItem :: (InfoKind n g, InfoKind e g) => State.State g n e c -> g -> n -> e -> c -> P.Palette n -> IO ()
+newItem :: (InfoKind n g, InfoKind e g, NetworkConfig c) =>
+           State.State g n e c -> g -> n -> e -> c -> P.Palette n -> IO ()
 newItem state g n e c p =
     closeDocAndThen state $
       do{ pDoc <- State.getDocument state
@@ -316,7 +318,7 @@ newItem state g n e c p =
         }
 
 openItem :: (InfoKind n g, InfoKind e g, Data (Network.Network g n e c),
-             Data c, FromJSON c) =>
+             NetworkConfig c) =>
             Frame () ->  State.State g n e c -> IO ()
 openItem theFrame state =
   do{ mbfname <- fileOpenDialog
@@ -332,7 +334,7 @@ openItem theFrame state =
 -- Third argument: Nothing means exceptions are ignored (used in Configuration)
 --              Just f means exceptions are shown in a dialog on top of frame f
 openNetworkFile :: (InfoKind n g, InfoKind e g, Data (Network.Network g n e c),
-                    Data c, FromJSON c) =>
+                    NetworkConfig c) =>
                    String -> State.State g n e c -> Maybe (Frame ()) -> IO ()
 openNetworkFile fname state exceptionsFrame =
   closeDocAndThen state $

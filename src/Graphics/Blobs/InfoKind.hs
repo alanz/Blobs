@@ -24,7 +24,6 @@ class (Eq a, Show a, ToJSON a, FromJSON a, Parse a, Data a, Typeable a,
 	-- ^ first arg is container label for error reporting.
 	--   second arg is global value
 
-
 -- A basic instance representing "no info"
 instance InfoKind () () where
     blank = ()
@@ -43,11 +42,6 @@ instance InfoKind a b => InfoKind (Maybe a) b where
     check n _ Nothing  = ["No info value stored with "++n]
     check n g (Just a) = check n g a
 
-instance Descriptor a => Descriptor (Maybe a) where
-  descriptor Nothing  =  "Nothing"
-  descriptor (Just x) =  "Just (" ++ (descriptor x) ++ ")"
-
-
 instance (Show a,Parse a, Descriptor a) => GuiGlobalEdit (Maybe a) b where
   editDialogWithGlobal _a _b = undefined
 
@@ -60,18 +54,32 @@ class (Show a) => Descriptor a where
 instance Descriptor () where
     descriptor _ = "null global info type"
 
+instance Descriptor a => Descriptor (Maybe a) where
+  descriptor Nothing  =  "Nothing"
+  descriptor (Just x) =  "Just (" ++ (descriptor x) ++ ")"
+
+
 -- -----------------------------------------------
 
--- A class of things that can be edited in a GUI, falling back to a
--- simple text editor using Parse/Show
+-- | A class of configuration settings that can be applied to a Network,
+--   expressing the minimum expectations of the current library
+class (Show c, Data c, FromJSON c, ToJSON c) => NetworkConfig c where
+    prohibitDoubleEdges :: c -> Bool
+    prohibitReverseEdges :: c -> Bool
+
+
+-- -----------------------------------------------
+
+-- | A class of things that can be edited in a GUI, falling back to a
+--   simple text editor using Parse/Show
 class (Show a,Parse a,Descriptor a) => GuiEdit a where
     editDialog :: Window a1 -- ^ Parent frame
                   -> String -- ^ Window title
                   -> a      -- ^ Existing value
                   -> IO (Maybe a) -- ^ Updated value if changed
 
--- A class of things that can be edited in a GUI, falling back to a
--- simple text editor using Parse/Show
+-- | A class of things that can be edited in a GUI with access to
+--   global state, falling back to a simple text editor using Parse/Show
 class (Show a,Parse a,Descriptor a) => GuiGlobalEdit a g where
     editDialogWithGlobal :: Window a1 -- ^ Parent frame
                             -> String -- ^ Window title

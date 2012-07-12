@@ -2,3 +2,4 @@
    - Check is done at Network.hs:454-455.
    - Parameterise the Network module to set whether these checks
      should be done or not
+  DONE

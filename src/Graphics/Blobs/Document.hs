@@ -61,7 +61,7 @@ data Selection
  --------------------------------------------------}
 
 -- | An empty document
-empty :: (InfoKind e g, InfoKind n g) => g -> n -> e -> c -> P.Palette n -> Document g n e c
+empty :: (InfoKind e g, InfoKind n g, NetworkConfig c) => g -> n -> e -> c -> P.Palette n -> Document g n e c
 empty g n e c p =
     Document
     { docNetwork      = Map.fromList [(toNetworkId "p1", Network.empty g n e c p)]
@@ -72,7 +72,7 @@ empty g n e c p =
     }
 
 -- | A document with an initial network
-initial :: (InfoKind e g, InfoKind n g) => g -> n -> e -> c -> P.Palette n -> Document g n e c
+initial :: (InfoKind e g, InfoKind n g, NetworkConfig c) => g -> n -> e -> c -> P.Palette n -> Document g n e c
 initial g n e c p =
     Document
     { docNetwork      = Map.fromList [(toNetworkId "p1", Network.empty g n e c p)]

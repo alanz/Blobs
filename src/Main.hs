@@ -1,6 +1,7 @@
 {-# LANGUAGE FlexibleInstances #-}
 {-# LANGUAGE MultiParamTypeClasses #-}
 {-# LANGUAGE TemplateHaskell #-}
+{-# OPTIONS_GHC -fno-warn-orphans #-}
 
 module Main (main, gain) where
 
@@ -41,6 +42,10 @@ instance InfoKind Int () where
 instance InfoKind [Int] () where
     blank = []
     check _ _ _ = []
+
+instance NetworkConfig () where
+  prohibitDoubleEdges _ = True
+  prohibitReverseEdges _ = False
 
 -- instance Data (Network () [Int] [Int]) where
 

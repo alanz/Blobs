@@ -126,7 +126,7 @@ selectEdge edgeNr state =
     ; repaintAll state
     }
 
-createEdge :: (InfoKind e g) => Int -> Int -> State g n e c -> IO ()
+createEdge :: (InfoKind e g, NetworkConfig c) => Int -> Int -> State g n e c -> IO ()
 createEdge fromNodeNr toNodeNr state =
   do{ pDoc <- getDocument state
     ; PD.updateDocument "add edge"

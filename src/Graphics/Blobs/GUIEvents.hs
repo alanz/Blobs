@@ -62,7 +62,7 @@ mouseDown leftButton mousePoint theFrame state =
                 }
     }
 
-leftMouseDownWithShift :: (InfoKind n g, InfoKind e g) =>
+leftMouseDownWithShift :: (InfoKind n g, InfoKind e g, NetworkConfig c) =>
                           Point -> State g n e c -> IO ()
 leftMouseDownWithShift mousePoint state =
   do{ pDoc <- getDocument state

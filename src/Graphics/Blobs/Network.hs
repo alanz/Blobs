@@ -21,6 +21,7 @@ module Graphics.Blobs.Network
     , getCanvasSize,    setCanvasSize
     , getPalette,       setPalette
     -- , getGlobalInfo,    setGlobalInfo
+    , getConfig,        setConfig
 
     , getNode
     , getEdge
@@ -104,7 +105,7 @@ type ViaNr  = Int
 type PortNr = Int
 
 -- | Create an empty network
-empty :: (InfoKind n g, InfoKind e g) => g -> n -> e -> c -> P.Palette n -> Network g n e c
+empty :: (InfoKind n g, InfoKind e g, NetworkConfig c) => g -> n -> e -> c -> P.Palette n -> Network g n e c
 empty _g _ _ c p = Network
     { networkNodes      = IntMap.empty
     , networkEdges      = IntMap.empty
@@ -358,6 +359,9 @@ getCanvasSize network = networkCanvasSize network
 -- getGlobalInfo :: Network g n e -> g
 -- getGlobalInfo network = networkInfo network
 
+getConfig :: Network g n e c -> c
+getConfig network = networkConfig network
+
 -- | Find the number of an edge given start and end node number
 findEdge :: NodeNr -> NodeNr -> Network g n e c -> Maybe EdgeNr
 findEdge fromNodeNr toNodeNr network =
@@ -452,10 +456,10 @@ addNodeEx name position labelAbove shape ninfo arity network =
 
 
 -- | Add an edge to the network.
-addEdge :: InfoKind e g => NodeNr -> NodeNr -> Network g n e c -> Network g n e c
+addEdge :: (InfoKind e g, NetworkConfig c) => NodeNr -> NodeNr -> Network g n e c -> Network g n e c
 addEdge fromNodeNr toNodeNr network
-    | any (sameFromAndTo edge) edgesList || -- prohibit double edges
-      any (sameFromAndTo (reverseEdge edge)) edgesList = -- prohibit edges in opposite direction
+    | (noDoubleEdges && any (sameFromAndTo edge) edgesList) || -- prohibit double edges
+      (noReverseEdges && any (sameFromAndTo (reverseEdge edge)) edgesList) = -- prohibit edges in opposite direction
         network
     | otherwise =
         let edgeNr = getUnusedEdgeNr network
@@ -463,6 +467,8 @@ addEdge fromNodeNr toNodeNr network
            setNodeArity toNodeNr   (updateToArity toArity) $
            network { networkEdges = IntMap.insert edgeNr edge (networkEdges network) }
   where
+    noDoubleEdges = prohibitDoubleEdges (getConfig network)
+    noReverseEdges = prohibitReverseEdges (getConfig network)
     edge = constructEdge fromNodeNr fromPortNr toNodeNr toPortNr [] blank
     edgesList = IntMap.elems (networkEdges network)
     fromArity  = getNodeArity network fromNodeNr
@@ -493,7 +499,7 @@ addEdgeWithPorts fromNodeNr fromPortNr toNodeNr toPortNr network
  --             , edgeToPort = toPortNr }
     edgesList = IntMap.elems (networkEdges network)
 
-addEdges :: InfoKind e g => [(NodeNr,NodeNr)] -> Network g n e c -> Network g n e c
+addEdges :: (InfoKind e g, NetworkConfig c) => [(NodeNr,NodeNr)] -> Network g n e c -> Network g n e c
 addEdges edgeTuples network =
   foldr (\(fromNr, toNr) net -> addEdge fromNr toNr net) network edgeTuples
 
@@ -558,7 +564,7 @@ setCanvasSize canvasSize network = network { networkCanvasSize = canvasSize }
 -- setGlobalInfo :: g -> Network g n e -> Network g n e
 -- setGlobalInfo ninfo network = network { networkInfo = ninfo }
 
-setConfig :: c -> Network g n e c -> Network g n e c
+setConfig :: (NetworkConfig c) => c -> Network g n e c -> Network g n e c
 setConfig  config network = network { networkConfig = config }
 
 {-----------------------------------
