@@ -3,3 +3,6 @@
    - Parameterise the Network module to set whether these checks
      should be done or not
   DONE
+
+2. File Load/Save should deal with the whole doc, not just the current
+   network
