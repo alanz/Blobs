@@ -6,3 +6,7 @@
 
 2. File Load/Save should deal with the whole doc, not just the current
    network
+  DONE
+
+3. Check if Descriptor is actually the same as Labeled, and replace it
+   if so

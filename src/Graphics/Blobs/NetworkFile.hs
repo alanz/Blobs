@@ -11,6 +11,7 @@ import Data.Data
 import Data.Aeson
 import qualified Data.ByteString.Lazy.Char8 as C8
 
+{-
 -- | Print the network data structure to an XML text
 toString :: (InfoKind n g, InfoKind e g, Data g, Typeable g, Data (N.Network g n e c),
              ToJSON c) =>
@@ -25,8 +26,17 @@ toStringAssocs :: (InfoKind n g, InfoKind e g, Data g, Typeable g, Data (N.Netwo
             [(D.NetworkId, N.Network g n e c)] -> String
 --toStringAssocs assocs = encodeXML assocs
 toStringAssocs assocs = C8.unpack $ encode assocs
+-}
 
+-- | Print the document  data structure to a JSON text
+toStringWholeDoc :: (InfoKind n g, InfoKind e g, Data g, Typeable g, Data (N.Network g n e c),
+                   ToJSON (D.Document g n e c)) =>
+            -- N.Network g n e c -> String
+            -- [(D.NetworkId, N.Network g n e c)] -> String
+            D.Document g n e c -> String
+toStringWholeDoc assocs = C8.unpack $ encode assocs
 
+{-
 -- | Parses a string to the network data structure
 --   Returns either an error message (Left) or the network,
 --   a list of warnings (Right) and a boolean indicating whether
@@ -56,6 +66,20 @@ fromStringAssocs xml =
     --       Left err -> Left err
     --       Right _  -> Right (v,[],False)
     case decode (C8.pack xml) of
+      Nothing -> Left "no parse"
+      Just v -> Right (v,[],False)
+-}
+
+-- | Parses a string to the network data structure
+--   Returns either an error message (Left) or the network,
+--   a list of warnings (Right) and a boolean indicating whether
+--   the file was an old Dazzle file
+fromStringWholeDoc :: (InfoKind n g, InfoKind e g, Data g, Typeable g, Data (N.Network g n e c),
+                       FromJSON (D.Document g n e c)) =>
+              -- String -> Either String ([(D.NetworkId, N.Network g n e c)], [String], Bool)
+              String -> Either String (D.Document g n e c, [String], Bool)
+fromStringWholeDoc str =
+    case decode (C8.pack str) of
       Nothing -> Left "no parse"
       Just v -> Right (v,[],False)
 

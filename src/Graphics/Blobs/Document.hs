@@ -1,3 +1,4 @@
+{-# LANGUAGE TemplateHaskell #-}
 {-| Module      :  Document
     Maintainer  :  afie@cs.uu.nl
 
@@ -24,11 +25,13 @@ module Graphics.Blobs.Document
     , updateNetwork, updateNetworkEx
     ) where
 
-import qualified Graphics.Blobs.Network as Network
+import Data.Aeson.TH
+import Data.Data
 import Graphics.Blobs.InfoKind
 import Graphics.Blobs.Math
-import qualified Graphics.Blobs.Palette as P
 import qualified Data.Map as Map
+import qualified Graphics.Blobs.Network as Network
+import qualified Graphics.Blobs.Palette as P
 
 
 {--------------------------------------------------
@@ -46,6 +49,7 @@ data Document g n e c = Document
     , docEmptyNetwork   :: Network.Network g n e c
     , docGlobalInfo     :: g
     } deriving Show
+    -- } deriving (Show,Data, Typeable)
 
 data Selection
     = NoSelection
@@ -55,6 +59,9 @@ data Selection
     | MultipleSelection (Maybe (DoublePoint,DoublePoint)) [Int] [(Int,Int)]
 	-- DoublePoint pair is for displaying dragged selection rectangle
     deriving (Show, Read, Eq)
+
+deriveJSON id ''Document
+deriveJSON id ''Selection
 
 {--------------------------------------------------
  -- CREATION

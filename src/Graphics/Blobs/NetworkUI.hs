@@ -54,6 +54,8 @@ getConfig state =
 create :: (InfoKind n g, InfoKind e g
           , Parse g, Show g, Descriptor g
           , Data (Network.Network g n e c)
+          , ToJSON (Document.Document g n e c)
+          , FromJSON (Document.Document g n e c)
           , NetworkConfig c) =>
           State.State g n e c -> g -> n -> e -> c -> P.Palette n -> GraphOps g n e c -> IO ()
 create state g n e c p ops =
@@ -318,7 +320,8 @@ newItem state g n e c p =
         }
 
 openItem :: (InfoKind n g, InfoKind e g, Data (Network.Network g n e c),
-             NetworkConfig c) =>
+             NetworkConfig c,
+             FromJSON (Document.Document g n e c)) =>
             Frame () ->  State.State g n e c -> IO ()
 openItem theFrame state =
   do{ mbfname <- fileOpenDialog
@@ -334,7 +337,8 @@ openItem theFrame state =
 -- Third argument: Nothing means exceptions are ignored (used in Configuration)
 --              Just f means exceptions are shown in a dialog on top of frame f
 openNetworkFile :: (InfoKind n g, InfoKind e g, Data (Network.Network g n e c),
-                    NetworkConfig c) =>
+                    NetworkConfig c,
+                    FromJSON (Document.Document g n e c)) =>
                    String -> State.State g n e c -> Maybe (Frame ()) -> IO ()
 openNetworkFile fname state exceptionsFrame =
   closeDocAndThen state $
@@ -347,14 +351,15 @@ openNetworkFile fname state exceptionsFrame =
     ) $
   do{ contents <- strictReadFile fname
     -- ; let errorOrNetwork = NetworkFile.fromString contents
-    ; let errorOrNetwork = NetworkFile.fromStringAssocs contents
-    ; case errorOrNetwork of {
+    ; let errorOrDocument = NetworkFile.fromStringWholeDoc contents
+    ; case errorOrDocument of {
         Left err -> ioError (userError err);
         -- Right (network, warnings, oldFormat) ->
-        Right (networkAssocs, warnings, oldFormat) ->
+        Right (doc, warnings, oldFormat) ->
   do{ -- "Open" document
     -- ; let newDoc = Document.setNetwork network (Document.empty undefined undefined undefined)
-    ; let newDoc = Document.setNetworkAssocs networkAssocs (Document.empty undefined undefined undefined undefined undefined)
+    -- ; let newDoc = Document.setNetworkAssocs networkAssocs (Document.empty undefined undefined undefined undefined undefined)
+    ; let newDoc = doc
     ; pDoc <- State.getDocument state
     ; PD.resetDocument (if null warnings then Just fname else Nothing)
                        newDoc pDoc
@@ -447,11 +452,12 @@ applyCanvasSize state =
     }
 
 saveToDisk :: (InfoKind n g, InfoKind e g, Data (Network.Network g n e c),
-               ToJSON c) =>
+               ToJSON (Document.Document g n e c)) =>
               Frame () -> String -> Document.Document g n e c -> IO Bool
 saveToDisk theFrame fileName doc =
     -- safeWriteFile theFrame fileName (NetworkFile.toString (Document.getNetwork doc))
-    safeWriteFile theFrame fileName (NetworkFile.toStringAssocs (Document.getNetworkAssocs doc))
+    -- safeWriteFile theFrame fileName (NetworkFile.toStringAssocs (Document.getNetworkAssocs doc))
+    safeWriteFile theFrame fileName (NetworkFile.toStringWholeDoc doc)
 
 exit :: State.State g n e c -> IO ()
 exit state =
