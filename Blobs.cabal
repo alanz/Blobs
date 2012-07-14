@@ -52,6 +52,7 @@ library
                  , Graphics.Blobs.ContextMenu
                  , Graphics.Blobs.DisplayOptions
                  , Graphics.Blobs.Document
+                 , Graphics.Blobs.Dialogs
                  , Graphics.Blobs.GUIEvents
                  , Graphics.Blobs.InfoKind
                  , Graphics.Blobs.Math
