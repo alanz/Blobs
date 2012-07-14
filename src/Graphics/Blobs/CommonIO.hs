@@ -77,8 +77,6 @@ myTextDialog parentWindow lineSize dialogTitle initial selectAll =
     ; set d [layout :=  column 5 [ fill $ widget textInput
                                   , floatBottomRight $ row 5 [widget ok, widget can]
                                   ]
-        --  ,clientSize := case size of SingleLine -> sz 300 40
-        --                              MultiLine ->  sz 500 200
             ,area := case lineSize of SingleLine -> rect (pt 50 50) (sz 300 80)
                                       MultiLine ->  rect (pt 50 50) (sz 500 250)
             ]
@@ -399,3 +397,5 @@ aTextDialog parentWindow dialogTitle initial = do
              ++"\nRemaining text: "++s)
           return Nothing
     Nothing -> return Nothing
+
+-- EOF

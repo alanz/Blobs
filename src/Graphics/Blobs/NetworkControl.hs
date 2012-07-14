@@ -18,22 +18,22 @@ module Graphics.Blobs.NetworkControl
     , showStuff
     ) where
 
-import Graphics.Blobs.State
-import Graphics.Blobs.StateUtil
-import Graphics.Blobs.Network as Network
-import Graphics.Blobs.NetworkView (edgeContains)
-import Graphics.Blobs.Document
+import Data.Char (isSpace)
 import Graphics.Blobs.Common
 import Graphics.Blobs.CommonIO
-import Graphics.Blobs.Math
-import qualified Graphics.Blobs.Shape as Shape
-import qualified Graphics.Blobs.PersistentDocument as PD
+import Graphics.Blobs.Dialogs
+import Graphics.Blobs.Document
 import Graphics.Blobs.InfoKind
+import Graphics.Blobs.Math
+import Graphics.Blobs.Network as Network
+import Graphics.Blobs.NetworkView (edgeContains)
 import Graphics.Blobs.Palette (shapes)
-import Text.Parse
-import Data.Char (isSpace)
-
+import Graphics.Blobs.State
+import Graphics.Blobs.StateUtil
 import Graphics.UI.WX hiding (Selection)
+import Text.Parse
+import qualified Graphics.Blobs.PersistentDocument as PD
+import qualified Graphics.Blobs.Shape as Shape
 
 changeNamePosition :: Bool -> State g n e c -> IO ()
 changeNamePosition above state =
@@ -577,21 +577,25 @@ levelDownNode theFrame state =
     ; case getSelection doc of
         NodeSelection nodeNr ->
               do{ let nodeInfo     = getNodeInfo network nodeNr
-                      -- oldNetworkId = "p2"
                       oldNetworkId = getNetworkSel doc
+                {-
                 ; result <- myTextDialog theFrame SingleLine
                                          "Id of child" (show oldNetworkId)
                                          True
-                ; ifJust result $ \newSel ->
-                     case toNetworkId (read newSel) == oldNetworkId of
+                -}
+                ; result <- newPageDialog theFrame
+                                         "Id of child" ((show oldNetworkId), getPaletteSelectors doc) Nothing
+
+                ; ifJust result $ \(newSel,newPalette) ->
+                     case toNetworkId newSel == oldNetworkId of
                        False ->
                          do{
                            let
-                             -- doc2 = setNetworkAndSel newSel (getEmptyNetwork doc) doc
-                             doc2 = setNetworkSel newSel doc
+                             doc2 = setPaletteSel newPalette doc
+                             doc3 = setNetworkSel newSel doc2
 
                            ; PD.setDocument "change node child Id"
-                                  doc2 pDoc
+                                  doc3 pDoc
                            ; repaintAll state
                            }
                        True -> return ()

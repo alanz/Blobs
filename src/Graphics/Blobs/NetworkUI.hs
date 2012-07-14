@@ -57,12 +57,14 @@ create :: (InfoKind n g, InfoKind e g
           , ToJSON (Document.Document g n e c)
           , FromJSON (Document.Document g n e c)
           , NetworkConfig c) =>
-          State.State g n e c -> g -> n -> e -> c -> P.Palette n -> GraphOps g n e c -> IO ()
-create state g n e c p ops =
+          State.State g n e c -> g -> n -> e -> c -> [(Document.PaletteId,P.Palette n)] -> GraphOps g n e c -> IO ()
+create state g n e c ps ops =
   do{ theFrame <- frame [ text := "Diagram editor"
                         , position      := pt 200 20
                         , clientSize    := sz 300 240 ]
     ; State.setNetworkFrame theFrame state
+
+    ; let (pname,p) = head ps
 
     -- Create page setup dialog and save in state
     ; pageSetupData  <- pageSetupDialogDataCreate
@@ -233,7 +235,7 @@ create state g n e c p ops =
             ) (ioOps ops)
 
     ; PD.initialise pDoc (PD.PD
-        { PD.document           = Document.empty g n e c p
+        { PD.document           = Document.setPaletteAssocs ps (Document.empty g n e c p)
         , PD.history            = []
         , PD.future             = []
         , PD.limit              = Nothing
@@ -251,7 +253,7 @@ create state g n e c p ops =
     -- Layout the main window
     ; set theFrame
         [ menuBar       := [ fileMenu, editMenu, viewMenu, opsMenu ]
-        , layout        := minsize (sz 300 240) $ fill $ widget canvas
+        , layout        := minsize (sz 600 480) $ fill $ widget canvas
         , on closing    := safetyNet theFrame $ exit state
         ]
 

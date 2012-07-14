@@ -10,3 +10,23 @@
 
 3. Check if Descriptor is actually the same as Labeled, and replace it
    if so
+
+4. Multiple palettes, associated with the pages.
+   Q: one palette per net (easiest, but ugly), or set of palettes and
+   mapping?
+
+   Current expectation is one palette per network. Hmmm.
+
+Assuming one palette per network, potentially different for each
+
+4.1 Change the UI to reflect palette for currently viewed
+   network==page
+
+4.2 make provision to change the palette associated with the network.
+    BUT: this should be driven by the logic of the kind of diagram
+   being constructed.
+
+
+
+5. Operations. Need to update to be multi-page aware
+

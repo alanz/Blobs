@@ -5,22 +5,21 @@
 
 module Main (main, gain) where
 
-import Data.Data
 import Data.List (nub)
 import Data.Maybe (fromJust)
-import Graphics.Blobs.CommonIO
-import Graphics.Blobs.Math
 import Graphics.Blobs.Colors
-import Graphics.Blobs.Shape
+import Graphics.Blobs.CommonIO
+import Graphics.Blobs.Document
 import Graphics.Blobs.InfoKind
+import Graphics.Blobs.Math
 import Graphics.Blobs.Network
 import Graphics.Blobs.Operations
+import Graphics.Blobs.Shape
 import Graphics.UI.WX
 import qualified Data.IntMap as IntMap
 import qualified Graphics.Blobs.NetworkUI as NetworkUI
-import qualified Graphics.Blobs.State as State
 import qualified Graphics.Blobs.Palette as P
-import Data.Aeson
+import qualified Graphics.Blobs.State as State
 
 main :: IO ()
 main = start $
@@ -30,7 +29,7 @@ main = start $
                              undefined	-- dummy edge state (for typechecker)
                              -- P.empty    -- initial palette
                              undefined  -- initial network config params
-                             simple     -- initial palette
+                             palettes   -- initial palette
                              graphOps	-- operations available from menu
     }
 
@@ -56,10 +55,10 @@ instance Descriptor Int where
   descriptor x = "Int=" ++ (show x)
 
 instance GuiGlobalEdit [Int] () where
-  editDialogWithGlobal parentWindow dialogTitle initial global = aTextDialog parentWindow dialogTitle initial
+  editDialogWithGlobal parentWindow dialogTitle initial _global = aTextDialog parentWindow dialogTitle initial
 
 instance GuiGlobalEdit Int () where
-  editDialogWithGlobal parentWindow dialogTitle initial global = aTextDialog parentWindow dialogTitle initial
+  editDialogWithGlobal parentWindow dialogTitle initial _global = aTextDialog parentWindow dialogTitle initial
 
 -- A simple range of operations on a graph network.
 graphOps :: GraphOps () [Int] [Int] ()
@@ -93,16 +92,37 @@ gain = main -- :-)
 
 -- ---------------------------------------------------------------------
 
+palettes :: [(PaletteId,P.Palette [Int])]
+palettes = [(toPaletteId "default",simple),(toPaletteId "reduced",reduced)]
+
 simple :: P.Palette [Int]
-simple =  P.Palette
-  [ ("circle"
+simple = P.Palette
+  [ paletteEntryCircle
+  , paletteEntrySquare
+  , paletteEntryTriangleLeft
+  , paletteEntryTriangleRight
+  , paletteEntryWire
+  ]
+
+reduced :: P.Palette [Int]
+reduced = P.Palette
+  [ paletteEntryCircle
+  , paletteEntrySquare
+  ]
+
+paletteEntryCircle :: (String, (Shape, Maybe [Int]))
+paletteEntryCircle =
+  ("circle"
     , ( Circle  { shapeStyle = ShapeStyle { styleStrokeWidth = 1
                                         , styleStrokeColour = RGB 0 0 0
                                         , styleFill = RGB 128 200 128
                                         }
               , shapeRadius = 0.5 }
       , Just [] ))
-  , ("square"
+
+paletteEntrySquare :: (String, (Shape, Maybe [Int]))
+paletteEntrySquare =
+  ("square"
     , ( Polygon { shapeStyle = ShapeStyle { styleStrokeWidth = 2
                                         , styleStrokeColour = RGB 0 0 0
                                         , styleFill = RGB 200 128 200
@@ -112,7 +132,10 @@ simple =  P.Palette
                                  , DoublePoint 0.5 0.5
                                  , DoublePoint (-0.5) 0.5 ] }
       , Just [] ))
-  , ("triangle left"
+
+paletteEntryTriangleLeft :: (String, (Shape, Maybe [Int]))
+paletteEntryTriangleLeft =
+  ("triangle left"
     , ( Polygon { shapeStyle = ShapeStyle { styleStrokeWidth = 1
                                         , styleStrokeColour = RGB 0 0 0
                                         , styleFill = RGB 128 200 200
@@ -121,7 +144,10 @@ simple =  P.Palette
                                  , DoublePoint 0.5 (-0.5)
                                  , DoublePoint 0.5 0.5 ] }
       , Just [] ))
-  , ("triangle right"
+
+paletteEntryTriangleRight :: (String, (Shape, Maybe [Int]))
+paletteEntryTriangleRight =
+  ("triangle right"
     , ( Polygon { shapeStyle = ShapeStyle { styleStrokeWidth = 1
                                         , styleStrokeColour = RGB 0 0 0
                                         , styleFill = RGB 128 200 200
@@ -130,7 +156,10 @@ simple =  P.Palette
                                  , DoublePoint (-0.5) 0.5
                                  , DoublePoint 0.5 0.0 ] }
       , Just [] ))
-  , ("wire"
+
+paletteEntryWire :: (String, (Shape, Maybe [Int]))
+paletteEntryWire =
+  ("wire"
     , ( Composite { shapeSegments =
                     [ Lines { shapeStyle = ShapeStyle
                                                { styleStrokeWidth = 2
@@ -148,6 +177,6 @@ simple =  P.Palette
                                                , DoublePoint 0.0 0.5 ] }
                     ] }
       , Just [] ))
-  ]
+
 
 
